@@ -1,0 +1,248 @@
+/* Global Ayarlar */
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Tablo Genel Stil */
+.table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+}
+
+.table th,
+.table td {
+  border: 1px solid #ccc !important; /* Kenarlık rengi ve kalınlığı */
+  text-align: center !important; /* Metin hizalaması */
+}
+
+/* Satırların sınırları */
+.table tr {
+  border: 1px solid #ccc !important;
+}
+
+/* Başlık Satırları */
+.table thead tr {
+  background-color: #bdbdbd !important;
+  font-weight: bold !important;
+}
+
+/* Alternatif Arkaplan Renkleri */
+.table tbody tr:nth-of-type(odd) {
+  background-color: #f9f9f9 !important;
+}
+
+.table tbody tr:nth-of-type(even) {
+  background-color: #f1f1f1 !important;
+}
+
+/* Hover Efekti */
+.table tbody tr:hover {
+  background-color: #8f8f8f !important;
+}
+
+/* Durum Renkleri */
+.bklyr {
+  background-color: #002fff !important;
+}
+
+.onay-bekliyor {
+  background-color: #6bdcff !important;
+}
+
+.yedek-parca {
+  background-color: #caa6ff !important;
+}
+
+.onariliyor {
+  background-color: #fdff6b !important;
+}
+
+.tamamlandi {
+  background-color: #b06bff !important;
+}
+
+.teslim-edildi {
+  background-color: #6bff6b !important;
+}
+
+.problemli-urun {
+  background-color: #ff6b6b !important;
+}
+
+.iade-edildi {
+  background-color: #d14d4d !important;
+}
+
+.teslim-alinmadi {
+  background-color: #b0b0b0 !important;
+}
+
+.hazirlaniyor {
+  background-color: #6b8aff !important;
+}
+
+.ariza-tespiti {
+  background-color: #ff6b6b !important;
+}
+
+.degisim-tamamlandi {
+  background-color: #b06bff !important;
+}
+
+.faturalandi {
+  background-color: #6bdcff !important;
+}
+
+.garantili-onarim {
+  background-color: #6bff6b !important;
+}
+
+.teslim-durumu {
+  background-color: #fdff6b !important;
+}
+
+.hurdaya-ayrildi {
+  background-color: #d14d4d !important;
+}
+
+.iade-tamamlandi {
+  background-color: #ffba6b !important;
+}
+
+.iade-toplaniyor {
+  background-color: #6b8aff !important;
+}
+
+.kiralama {
+  background-color: #caa6ff !important;
+}
+
+.montaj-yapilacak {
+  background-color: #ffb6c1 !important;
+}
+
+.onarim-asamasinda {
+  background-color: #ffdab9 !important;
+}
+
+.onay-durumu {
+  background-color: #add8e6 !important;
+}
+
+.parca-durumu {
+  background-color: #ffa07a !important;
+}
+
+.periyodik-bakim {
+  background-color: #98fb98 !important;
+}
+
+.satin-alindi {
+  background-color: #20b2aa !important;
+}
+
+.servis-durumu {
+  background-color: #87cefa !important;
+}
+
+.siparis-durumu {
+  background-color: #9370db !important;
+}
+
+.tahsilat-bekliyor {
+  background-color: #ffe4b5 !important;
+}
+
+.ucret-bildirilecek {
+  background-color: #ffa07a !important;
+}
+
+.yedek-parca {
+  background-color: #caa6ff !important;
+}
+
+.default {
+  background-color: #804444 !important;
+  border: 4px #002fff solid !important;
+}
+
+.btn-secondary {
+  background-color: #6c757d !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 5px 10px !important;
+  cursor: pointer !important;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268 !important;
+}
+
+#details {
+  display: none !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+}
+
+.fs-6 {
+  padding-top: -20px !important;
+}
+
+#gitdegistirya {
+  border-radius: 10px !important;
+}
+
+/* Düzenle butonu hover ile görünür olsun */
+.durum-container {
+  position: relative !important;
+}
+
+.durum-container:hover .duzenle-btn {
+  display: block !important;
+  position: absolute !important;
+  top: 75% !important;
+  left: 10px !important;
+  transform: translateY(-50%) !important;
+  z-index: 1000 !important;
+}
+
+.duzenle-btn {
+  display: none !important;
+  background-color: #007bff !important;
+  color: white !important;
+  padding: 5px !important;
+  border-radius: 4px !important;
+  font-size: 20px;
+  border: none !important;
+  cursor: pointer !important;
+}
+
+.duzenle-btn:hover {
+  background-color: #0056b3 !important;
+}
+
+.ozel-secici input[type="checkbox"] {
+  appearance: none !important;
+  width: 20px !important;
+  height: 20px !important;
+  background-color: yellow !important;
+  border: 2px solid black !important;
+  position: relative !important;
+  cursor: pointer !important;
+}
+
+.ozel-secici input[type="checkbox"]:checked::after {
+  content: "✔" !important;
+  font-size: 28px !important;
+  color: red !important; /* Tik rengini kırmızı yap */
+  position: absolute !important;
+  /* top: 10% !important; */
+  left: 60% !important;
+  transform: translate(-50%, -50%) !important;
+}

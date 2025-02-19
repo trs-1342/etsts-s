@@ -1,0 +1,72 @@
+/* Form Genel Düzeni */
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: #f9fafc;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Başlık */
+h1 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Input ve Dropdown */
+.form-control,
+.form-select {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Devre Dışı Input */
+.form-control:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+/* Label */
+.form-label {
+  font-weight: bold;
+  color: #555;
+}
+
+/* Kaydet Butonu */
+.btn-success {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.btn-success:hover {
+  background-color: #4caf50;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  appearance: none !important;
+  width: 20px !important;
+  height: 20px !important;
+  background-color: yellow !important;
+  border: 2px solid black !important;
+  position: relative !important;
+  cursor: pointer !important;
+  margin-left: 10px;
+  margin-bottom: -5px;
+  border-radius: 6px;
+}
+
+.custom-checkbox input[type="checkbox"]:checked::after {
+  content: "✔" !important;
+  font-size: 28px !important;
+  color: red !important; /* Tik rengini kırmızı yap */
+  position: absolute !important;
+  /* top: 10% !important; */
+  left: 60% !important;
+  transform: translate(-50%, -50%) !important;
+}

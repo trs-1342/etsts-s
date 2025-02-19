@@ -1,0 +1,19 @@
+.custom-checkbox input[type="checkbox"] {
+  appearance: none !important;
+  width: 20px !important;
+  height: 20px !important;
+  background-color: yellow !important;
+  border: 2px solid black !important;
+  position: relative !important;
+  cursor: pointer !important;
+}
+
+.custom-checkbox input[type="checkbox"]:checked::after {
+  content: "✔" !important;
+  font-size: 28px !important;
+  color: red !important; /* Tik rengini kırmızı yap */
+  position: absolute !important;
+  /* top: 10% !important; */
+  left: 60% !important;
+  transform: translate(-50%, -50%) !important;
+}

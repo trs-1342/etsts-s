@@ -1,0 +1,31 @@
+ek durumlar
+müşteri/baayi ekleme
+durum hanesi direkt düzenlensin			ONAY ALINACAK
+durum menusu renklendirme 				TAMAM
+excel								TAMAM
+iş dağılımı
+tekniksyenin kendi panelinde görmesi
+hesap girişi
+
+
+2.EL SATIŞTA
+ARIZA TESPİTİ
+DEĞİŞİM TAMAMLANDI
+FATURALANDI
+GARANTİLİ ONARIM
+TESLİM DURUMU
+HURDAYA AYRILDI
+İADE TAMAMLANDI
+İADE TOPLANIYOR
+KİRALAMA
+MONTAJ YAPILACAK
+ONARIM AŞAMASINDA
+ONAY DURUMU
+PARÇA DURUMU
+PERİYODİK BAKIM
+SATIN ALINDI
+SERVİS DURUMU
+SİPARİŞ DURUMU
+TAHSİLAT BEKLİYOR
+ÜCRET BİLDİRİLECEK
+YEDEK PARÇA

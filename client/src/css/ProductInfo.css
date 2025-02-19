@@ -1,0 +1,167 @@
+/* Global Ayarlar */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Tablo Genel Stil */
+.table {
+  border-collapse: collapse;
+  width: 100% !important;
+}
+
+.table th,
+.table td {
+  border: 1px solid #ccc; /* Kenarlık rengi ve kalınlığı */
+  padding: 8px; /* Hücre içi boşluk */
+  text-align: center; /* Metin hizalaması */
+}
+
+/* Satırların sınırları */
+.table tr {
+  border: 1px solid #ccc; /* Satırların kenarlıkları */
+}
+
+/* Başlık Satırları */
+.table thead tr {
+  background-color: #bdbdbd;
+  font-weight: bold;
+}
+
+/* Alternatif Arkaplan Renkleri */
+.table tbody tr:nth-of-type(odd) {
+  background-color: #f9f9f9;
+}
+
+.table tbody tr:nth-of-type(even) {
+  background-color: #f1f1f1;
+}
+
+/* Hover Efekti */
+.table tbody tr:hover {
+  background-color: #8f8f8f;
+}
+
+/* Durum Renkleri */
+.bekliyor {
+  background-color: #ffba6b !important;
+}
+
+.onay-bekliyor {
+  background-color: #6bdcff !important;
+}
+
+.yedek-parca {
+  background-color: #caa6ff !important;
+}
+
+.onariliyor {
+  background-color: #fdff6b !important;
+}
+
+.tamamlandi {
+  background-color: #b06bff !important;
+}
+
+.teslim-edildi {
+  background-color: #6bff6b !important;
+}
+
+.problemli-urun {
+  background-color: #ff6b6b !important;
+}
+
+.iade-edildi {
+  background-color: #d14d4d !important;
+}
+
+.teslim-alinmadi {
+  background-color: #b0b0b0 !important;
+}
+
+.hazirlaniyor {
+  background-color: #6b8aff !important;
+}
+
+.ariza-tespiti {
+  background-color: #ff6b6b !important;
+}
+
+.degisim-tamamlandi {
+  background-color: #b06bff !important;
+}
+
+.faturalandi {
+  background-color: #6bdcff !important;
+}
+
+.garantili-onarim {
+  background-color: #6bff6b !important;
+}
+
+.teslim-durumu {
+  background-color: #fdff6b !important;
+}
+
+.hurdaya-ayrildi {
+  background-color: #d14d4d !important;
+}
+
+.iade-tamamlandi {
+  background-color: #ffba6b !important;
+}
+
+.iade-toplaniyor {
+  background-color: #6b8aff !important;
+}
+
+.kiralama {
+  background-color: #caa6ff !important;
+}
+
+.montaj-yapilacak {
+  background-color: #ffb6c1 !important;
+}
+
+.onarim-asamasinda {
+  background-color: #ffdab9 !important;
+}
+
+.onay-durumu {
+  background-color: #add8e6 !important;
+}
+
+.parca-durumu {
+  background-color: #ffa07a !important;
+}
+
+.periyodik-bakim {
+  background-color: #98fb98 !important;
+}
+
+.satin-alindi {
+  background-color: #20b2aa !important;
+}
+
+.servis-durumu {
+  background-color: #87cefa !important;
+}
+
+.siparis-durumu {
+  background-color: #9370db !important;
+}
+
+.tahsilat-bekliyor {
+  background-color: #ffe4b5 !important;
+}
+
+.ucret-bildirilecek {
+  background-color: #ffa07a !important;
+}
+
+.yedek-parca {
+  background-color: #caa6ff !important;
+}
