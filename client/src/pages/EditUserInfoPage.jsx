@@ -10,7 +10,7 @@ export default function EditUserInfo() {
 
   // Kullanıcı bilgilerini çek
   useEffect(() => {
-    fetch(`http://192.168.0.138:2431/api/get-user/${id}`)
+    fetch(`http://192.168.0.201:2431/api/get-user/${id}`)
       .then((response) => response.json())
       .then((data) => {
         setUser(data);
@@ -28,7 +28,7 @@ export default function EditUserInfo() {
     e.preventDefault();
 
     // Kullanıcı bilgilerini güncelleme isteği
-    fetch(`http://192.168.0.138:2431/api/update-user/${id}`, {
+    fetch(`http://192.168.0.201:2431/api/update-user/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

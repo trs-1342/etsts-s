@@ -37,7 +37,7 @@ export default function ProductInfo() {
   // useEffect(() => {
   //   (async () => {
   //     try {
-  //       const response = await fetch("http://192.168.0.138:2431/api/printers");
+  //       const response = await fetch("http://192.168.0.201:2431/api/printers");
   //       if (!response.ok) throw new Error("Yazıcı listesi alınamadı");
 
   //       const data = await response.json();
@@ -58,7 +58,7 @@ export default function ProductInfo() {
     const checkAuthorization = async () => {
       try {
         const response = await fetch(
-          `http://192.168.0.138:2431/api/check-product-access/${fishNo}`,
+          `http://192.168.0.201:2431/api/check-product-access/${fishNo}`,
           {
             credentials: "include",
           }
@@ -85,7 +85,7 @@ export default function ProductInfo() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.138:2431/api/checkAdmin",
+          "http://192.168.0.201:2431/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -110,7 +110,7 @@ export default function ProductInfo() {
     const fetchkayit = async () => {
       try {
         const response = await fetch(
-          `http://192.168.0.138:2431/api/getInfoProd/${fishNo}`,
+          `http://192.168.0.201:2431/api/getInfoProd/${fishNo}`,
           {
             credentials: "include",
           }
@@ -219,7 +219,7 @@ export default function ProductInfo() {
     const encodedData = btoa(unescape(encodeURIComponent(printData)));
 
     try {
-      const response = await fetch("http://192.168.0.138:2431/print", {
+      const response = await fetch("http://192.168.0.201:2431/print", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -247,7 +247,7 @@ export default function ProductInfo() {
   // const handlePrint = async () => {
   //   if (!selectedPrinter) return alert("Lütfen bir yazıcı seçin");
   //   try {
-  //     const response = await fetch("http://192.168.0.138:2431/api/print", {
+  //     const response = await fetch("http://192.168.0.201:2431/api/print", {
   //       method: "POST",
   //       headers: { "Content-Type": "application/json" },
   //       body: JSON.stringify({
@@ -363,7 +363,7 @@ export default function ProductInfo() {
               if (confirmDelete) {
                 try {
                   const response = await fetch(
-                    `http://192.168.0.138:2431/api/deleteProduct/${kayit.fishNo}`,
+                    `http://192.168.0.201:2431/api/deleteProduct/${kayit.fishNo}`,
                     {
                       method: "DELETE",
                       credentials: "include",

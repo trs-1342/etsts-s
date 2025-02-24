@@ -1,10 +1,10 @@
-CREATE USER 'pma'@'192.168.0.138' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON phpmyadmin.* TO 'pma'@'192.168.0.138';
+CREATE USER 'pma'@'192.168.0.201' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON phpmyadmin.* TO 'pma'@'192.168.0.201';
 
 FLUSH PRIVILEGES;
 
 
-ALTER USER 'root'@'192.168.0.138' IDENTIFIED WITH mysql_native_password BY 'password';
+ALTER USER 'root'@'192.168.0.201' IDENTIFIED WITH mysql_native_password BY 'password';
 
 
 -- AAAAAAAAAAAAAAAAAAAA

@@ -61,7 +61,7 @@ app.use(
 
 app.use(
   cors({
-    origin: "http://192.168.0.138:1342",
+    origin: "http://192.168.0.201:1342",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -69,7 +69,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://192.168.0.138:1342");
+  res.header("Access-Control-Allow-Origin", "http://192.168.0.201:1342");
   res.header("Access-Control-Allow-Credentials", "true"); // Kimlik bilgilerini kabul et
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // İzin verilen HTTP yöntemleri
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // İzin verilen başlıklar
@@ -170,8 +170,8 @@ wss.on("connection", (ws, req) => {
 function authMiddleware(req, res, next) {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   if (!req.session || !req.session.user) {
@@ -378,8 +378,8 @@ function atob(str) {
 app.get("/api/checkAdmin", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const username = req.session?.user?.username;
 
@@ -416,8 +416,8 @@ app.get("/api/checkAdmin", (req, res) => {
 app.post("/api/logout", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   req.session.destroy((err) => {
     if (err) {
@@ -432,8 +432,8 @@ app.post("/api/logout", (req, res) => {
 app.post("/api/login", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, password } = req.body;
 
@@ -494,8 +494,8 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/check-product-access/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { fishNo } = req.params;
   const username = req.session.user?.username;
@@ -526,8 +526,8 @@ app.get("/api/check-product-access/:fishNo", (req, res) => {
 app.post("/api/check-page-access", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, page } = req.body;
 
@@ -578,8 +578,8 @@ app.post("/api/check-page-access", (req, res) => {
 app.get("/api/get-user-pages/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username } = req.params;
 
@@ -632,8 +632,8 @@ app.get("/api/get-user-pages/:username", (req, res) => {
 app.get("/api/get-user-permissions/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username } = req.params;
 
@@ -659,8 +659,8 @@ app.get("/api/get-user-permissions/:username", (req, res) => {
 app.get("/api/get-session-user", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   if (req.session.user) {
     res.json({ username: req.session.user.username });
@@ -672,8 +672,8 @@ app.get("/api/get-session-user", (req, res) => {
 app.get("/api/get-user-records/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username } = req.params;
 
@@ -742,8 +742,8 @@ app.get("/api/get-user-records/:username", (req, res) => {
 app.post("/api/add-user", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, password, email, role } = req.body;
 
@@ -797,8 +797,8 @@ app.post("/api/add-user", async (req, res) => {
 app.put("/api/update-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const userId = req.params.id;
   const { username, email, role, password } = req.body;
@@ -865,8 +865,8 @@ app.put("/api/update-user/:id", async (req, res) => {
 app.delete("/api/delete-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { id } = req.params;
 
@@ -902,8 +902,8 @@ app.delete("/api/delete-user/:id", async (req, res) => {
 app.get("/api/get-users-data", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const query = "SELECT id, username, email, role, created_at FROM users";
 
@@ -920,8 +920,8 @@ app.get("/api/get-users-data", (req, res) => {
 app.get("/api/get-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const userId = req.params.id;
   const query =
@@ -944,8 +944,8 @@ app.get("/api/get-user/:id", (req, res) => {
 app.post("/api/update-settings-for-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const userId = req.params.id;
   const { allowedColumns } = req.body;
@@ -975,8 +975,8 @@ app.post("/api/update-settings-for-user/:id", (req, res) => {
 app.get("/api/get-user-settings/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const username = req.params.username; // URL'den gelen kullanıcı adı
   console.log(username);
@@ -1022,8 +1022,8 @@ app.get("/api/get-user-settings/:username", (req, res) => {
 app.post("/api/change-user-settings", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, permissions } = req.body;
 
@@ -1095,8 +1095,8 @@ app.post("/api/change-user-settings", (req, res) => {
 app.get("/api/delivered-products", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const query = "SELECT * FROM records WHERE Durum = 'Teslim Edildi'";
   db.query(query, (err, results) => {
@@ -1117,8 +1117,8 @@ app.get("/api/delivered-products", (req, res) => {
 app.get("/api/getInfoProd/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const fishNo = req.params.fishNo;
 
@@ -1140,8 +1140,8 @@ app.get("/api/getInfoProd/:fishNo", (req, res) => {
 app.get("/api/protected", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   const username = req.session.user?.username;
@@ -1188,8 +1188,8 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 app.get("/api/records", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, role } = req.user; // authMiddleware'den gelen kullanıcı bilgileri
 
@@ -1240,7 +1240,7 @@ app.get("/api/record/:fishNo", (req, res) => {
     }
 
     // ** eğer istek yetkili istemciden gelmiyorsa mesaj döndür **
-    if (clientIP !== "http://192.168.0.138:1342") {
+    if (clientIP !== "http://192.168.0.201:1342") {
       return res
         .status(403)
         .json({ message: "Bu verilere erişim izniniz yok." });
@@ -1254,7 +1254,7 @@ app.get("/api/record/:fishNo", (req, res) => {
 app.get("/api/get-all-fishNos", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
+  if (clientIP !== "http://192.168.0.201:1342") {
     return res.status(403).json({ message: "Bu verilere erişim izniniz yok." });
   }
 
@@ -1274,7 +1274,7 @@ app.get("/api/get-all-fishNos", (req, res) => {
 app.put("/api/record/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // İstemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
+  if (clientIP !== "http://192.168.0.201:1342") {
     return res.status(403).json({ message: "Bu verilere erişim izniniz yok." });
   }
   const { fishNo } = req.params;
@@ -1351,8 +1351,8 @@ app.put("/api/record/:fishNo", (req, res) => {
 app.get("/api/export-records", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const query = `
     SELECT fishNo, AdSoyad, DATE_FORMAT(TeslimAlmaTarihi, '%Y-%m-%d %H:%i:%s') AS TeslimAlmaTarihi, 
@@ -1377,8 +1377,8 @@ app.get("/api/export-records", (req, res) => {
 app.post("/api/record", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { AdSoyad } = req.body;
 
@@ -1415,8 +1415,8 @@ const generateFishNoID = () => {
 app.post("/api/addpro", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   const {
@@ -1513,8 +1513,8 @@ app.post("/api/addpro", (req, res) => {
 app.post("/api/addpro", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip;
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   const {
@@ -1628,8 +1628,8 @@ app.post("/api/addpro", (req, res) => {
 app.post("/api/addpro", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip;
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   const {
@@ -1744,8 +1744,8 @@ app.post("/api/addpro", (req, res) => {
 app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   const { fishNo } = req.params;
@@ -1778,23 +1778,23 @@ app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
 app.get("/", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/");
   }
 });
 
 app.get("*", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.138:1342") {
-    return res.redirect("http://192.168.0.138:1342/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 });
 
 // server.listen(PORT, () => {
-//   console.log(`http://192.168.0.138:${PORT}`);
+//   console.log(`http://192.168.0.201:${PORT}`);
 // });
 
-server.listen(PORT, "192.168.0.138", () => {
-  console.log(`http://192.168.0.138:${PORT}`);
+server.listen(PORT, "192.168.0.201", () => {
+  console.log(`http://192.168.0.201:${PORT}`);
 });

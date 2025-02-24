@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 // Veritabanı bağlantısını oluşturma
 const db = mysql.createConnection({
-  host: "192.168.0.138",
+  host: "192.168.0.201",
   user: "root",
   password: "password", // Veritabanı şifrenizi buraya yazın
   database: "ETSTSR", // Veritabanı adınızı buraya yazın
