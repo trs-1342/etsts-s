@@ -1,7 +1,4 @@
-node_modules/
 client/node_modules/
 server/node_modules/
-kayitlar/
-workspase/
-assests/
-node_modules/
+server/users.js
+server/fonts/
