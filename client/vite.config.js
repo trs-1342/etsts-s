@@ -12,7 +12,7 @@ export default defineConfig({
       "Access-Control-Allow-Origin": "*",
     },
     host: "0.0.0.0",
-    port: 1342,
+    port: 80, // Port 80'e ayarlandı
     cors: true,
   },
   resolve: {
