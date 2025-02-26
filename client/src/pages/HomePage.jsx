@@ -29,28 +29,24 @@ function formatTarihVeSaat(tarih) {
 }
 
 export default function HomePage() {
-  const { hasAccess, loading } = usePageAccess("HomePage");
-
-  //
-
+  // const { hasAccess, loading } = usePageAccess("HomePage");
   const navigate = useNavigate();
   const [kayitlar, setKayitlar] = useState([]);
   const [filtre, setFiltre] = useState("Hepsi");
   const [garantiFiltre, setGarantiFiltre] = useState("Hepsi");
   const [filtreTarihi, setFiltreTarihi] = useState("");
   const [acikDetaylar, setAcikDetaylar] = useState({});
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" }); // oto bos gonderme
   const [isToolsPanelOpen, setIsToolsPanelOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredResults, setFilteredResults] = useState([]);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [role, setRole] = useState("");
-  const [userRole, setUserRole] = useState(""); // Kullanıcı rolü için state
-  const [allowedColumns, setAllowedColumns] = useState([]);
-  const [userId, setUserId] = useState(null); // Initialize userId state
-  const [userData, setUserData] = useState(null);
+  // const [role, setRole] = useState("");
+  const [userRole, setUserRole] = useState(""); // kullanıcı rolu için state
+  // const [allowedColumns, setAllowedColumns] = useState([]);
+  // const [userId, setUserId] = useState(null);
+  // const [userData, setUserData] = useState(null);
 
-  // Check if the user is authorized and set userId
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -76,24 +72,6 @@ export default function HomePage() {
 
     fetchUser();
   }, []);
-
-  // useEffect(() => {
-  //   const fetchRecords = async () => {
-  //     try {
-  //       const response = await fetch("http://192.168.0.140:2431/api/records", {
-  //         credentials: "include",
-  //       });
-  //       if (!response.ok) throw new Error("Yetkisiz erişim!");
-
-  //       const data = await response.json();
-  //       setKayitlar(data.data);
-  //     } catch (error) {
-  //       console.error("Kayıtları getirirken hata:", error.message);
-  //     }
-  //   };
-
-  //   fetchRecords();
-  // }, [isAuthorized]);
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -125,8 +103,7 @@ export default function HomePage() {
     };
 
     fetchRecords();
-  }, [isAuthorized]); // API çağrısı tamamlandıktan sonra çalışır.
-
+  }, [isAuthorized]); // API çagrısı tamamlandıktan sonra calisir.
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
@@ -190,69 +167,19 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    // Varsayılanı "TeslimAlmaTarihi"ne göre desc olarak ayarla
-    setSortConfig({ key: "TeslimAlmaTarihi", direction: "desc" });
+    // Varsayılanı "fishNo"ya göre desc olarak ayarla
+    setSortConfig({ key: "fishNo", direction: "desc" });
 
     // Sonra da kayitlar'ı yeniden düzenle
     const sorted = [...kayitlar].sort((a, b) => {
-      if (!a.TeslimAlmaTarihi) return 1;
-      if (!b.TeslimAlmaTarihi) return -1;
+      if (!a.fishNo) return 1;
+      if (!b.fishNo) return -1;
 
-      const dateA = parseDateString(a.TeslimAlmaTarihi);
-      const dateB = parseDateString(b.TeslimAlmaTarihi);
-      if (!dateA) return 1;
-      if (!dateB) return -1;
-
-      // desc: yeni tarih önce gelsin
-      return dateB - dateA;
+      return b.fishNo - a.fishNo;
     });
     setKayitlar(sorted);
     // eslint-disable-next-line
   }, []);
-
-
-  // const sortData = (key) => {
-  //   let direction = "asc";
-
-  //   // Aynı key'e tıklandıkça asc/desc yönünü değiştiriyor
-  //   if (sortConfig.key === key && sortConfig.direction === "asc") {
-  //     direction = "desc";
-  //   } else if (sortConfig.key === key && sortConfig.direction === "desc") {
-  //     direction = "asc";
-  //   }
-
-  //   setSortConfig({ key, direction });
-
-  //   const sortedData = [...kayitlar].sort((a, b) => {
-  //     if (!a[key]) return 1;
-  //     if (!b[key]) return -1;
-
-  //     // Eğer TeslimAlmaTarihi ise özel tarih sıralaması yap
-  //     if (key === "TeslimAlmaTarihi") {
-  //       const dateA = parseDateString(a[key]);
-  //       const dateB = parseDateString(b[key]);
-
-  //       // Parse edilemezse en sona atsın
-  //       if (!dateA) return 1;
-  //       if (!dateB) return -1;
-
-  //       // direction === 'asc' => küçük tarihten büyüğe
-  //       // direction === 'desc' => büyük tarihten küçüğe
-  //       return direction === "asc" ? dateA - dateB : dateB - dateA;
-  //     }
-
-  //     // Diğer alanlar için mevcut string/number kıyaslama
-  //     if (typeof a[key] === "string" && typeof b[key] === "string") {
-  //       return direction === "asc"
-  //         ? a[key].localeCompare(b[key])
-  //         : b[key].localeCompare(a[key]);
-  //     }
-
-  //     return direction === "asc" ? a[key] - b[key] : b[key] - a[key];
-  //   });
-
-  //   setKayitlar(sortedData);
-  // };
 
   const sortData = (key) => {
     let direction = "asc";
@@ -273,7 +200,11 @@ export default function HomePage() {
       if (!b[key]) return -1;
 
       // Eğer tarih sıralanıyorsa, önce parse işlemi yap
-      if (key === "TeslimAlmaTarihi" || key === "HazirlamaTarihi" || key === "TeslimEtmeTarihi") {
+      if (
+        key === "TeslimAlmaTarihi" ||
+        key === "HazirlamaTarihi" ||
+        key === "TeslimEtmeTarihi"
+      ) {
         const dateA = parseDateString(a[key]);
         const dateB = parseDateString(b[key]);
 
@@ -283,6 +214,11 @@ export default function HomePage() {
         return direction === "asc" ? dateA - dateB : dateB - dateA;
       }
 
+      // Sayı sıralaması
+      if (typeof a[key] === "number" && typeof b[key] === "number") {
+        return direction === "asc" ? a[key] - b[key] : b[key] - a[key];
+      }
+
       // Eğer metin sıralanıyorsa (string karşılaştırma)
       if (typeof a[key] === "string" && typeof b[key] === "string") {
         return direction === "asc"
@@ -290,8 +226,7 @@ export default function HomePage() {
           : b[key].localeCompare(a[key]);
       }
 
-      // Sayı sıralaması
-      return direction === "asc" ? a[key] - b[key] : b[key] - a[key];
+      return 0;
     });
 
     setKayitlar(sortedData);
@@ -819,7 +754,7 @@ export default function HomePage() {
                 {[
                   { key: "fishNo", label: "Fis No" },
                   { key: "AdSoyad", label: "Ad Soyad" },
-                  { key: "TeslimAlmaTarihi", label: "Teslim Alma Tarihi" },
+                  { key: "fishNo", label: "Fis No" },
                   { key: "TelNo", label: "TelNo" },
                   { key: "Urun", label: "Ürün" },
                   { key: "Marka", label: "Marka" },
@@ -835,9 +770,13 @@ export default function HomePage() {
                   { key: "Ucret", label: "Ücret" },
                   { key: "HazirlamaTarihi", label: "Hazırlama Tarihi" },
                   { key: "TeslimEtmeTarihi", label: "Teslim Etme Tarihi" },
-                  { key: "Durum", label: "Durum" }
+                  { key: "Durum", label: "Durum" },
                 ].map(({ key, label }) => (
-                  <th key={key} onClick={() => sortData(key)} style={{ cursor: "pointer" }}>
+                  <th
+                    key={key}
+                    onClick={() => sortData(key)}
+                    style={{ cursor: "pointer" }}
+                  >
                     {label}
                     {sortConfig.key === key &&
                       (sortConfig.direction === "asc" ? " ▲" : " ▼")}
@@ -967,62 +906,62 @@ export default function HomePage() {
                         recordS.Durum === "Onarılıyor"
                           ? "onariliyor"
                           : recordS.Durum === "Tamamlandı"
-                            ? "tamamlandi"
-                            : recordS.Durum === "Bekliyor"
-                              ? "bklyr"
-                              : recordS.Durum === "İade Edildi"
-                                ? "iade-edildi"
-                                : recordS.Durum === "Teslim Edildi"
-                                  ? "teslim-edildi"
-                                  : recordS.Durum === "Onay Bekliyor"
-                                    ? "onay-bekliyor"
-                                    : recordS.Durum === "Yedek Parça Bekliyor"
-                                      ? "yedek-parca"
-                                      : recordS.Durum === "Problemli Ürün"
-                                        ? "problemli-urun"
-                                        : recordS.Durum === "Teslim Alınmadı"
-                                          ? "teslim-alinmadi"
-                                          : recordS.Durum === "Hazırlanıyor"
-                                            ? "hazirlaniyor"
-                                            : recordS.Durum === "Arıza Tespiti"
-                                              ? "ariza-tespiti"
-                                              : recordS.Durum === "Değişim Tamamlandı"
-                                                ? "degisim-tamamlandi"
-                                                : recordS.Durum === "Faturalandı"
-                                                  ? "faturalandi"
-                                                  : recordS.Durum === "Garantili Onarım"
-                                                    ? "garantili-onarim"
-                                                    : recordS.Durum === "Teslim Durumu"
-                                                      ? "teslim-durumu"
-                                                      : recordS.Durum === "Hurdaya Ayrıldı"
-                                                        ? "hurdaya-ayrildi"
-                                                        : recordS.Durum === "İade Tamamlandı"
-                                                          ? "iade-tamamlandi"
-                                                          : recordS.Durum === "İade Toplanıyor"
-                                                            ? "iade-toplaniyor"
-                                                            : recordS.Durum === "Kiralama"
-                                                              ? "kiralama"
-                                                              : recordS.Durum === "Montaj Yapılacak"
-                                                                ? "montaj-yapilacak"
-                                                                : recordS.Durum === "Onarım Aşamasında"
-                                                                  ? "onarim-asamasinda"
-                                                                  : recordS.Durum === "Onay Durumu"
-                                                                    ? "onay-durumu"
-                                                                    : recordS.Durum === "Parça Durumu"
-                                                                      ? "parca-durumu"
-                                                                      : recordS.Durum === "Periyodik Bakım"
-                                                                        ? "periyodik-bakim"
-                                                                        : recordS.Durum === "Satın Alındı"
-                                                                          ? "satin-alindi"
-                                                                          : recordS.Durum === "Servis Durumu"
-                                                                            ? "servis-durumu"
-                                                                            : recordS.Durum === "Sipariş Durumu"
-                                                                              ? "siparis-durumu"
-                                                                              : recordS.Durum === "Tahsilat Bekliyor"
-                                                                                ? "tahsilat-bekliyor"
-                                                                                : recordS.Durum === "Ücret Bildirilecek"
-                                                                                  ? "ucret-bildirilecek"
-                                                                                  : ""
+                          ? "tamamlandi"
+                          : recordS.Durum === "Bekliyor"
+                          ? "bklyr"
+                          : recordS.Durum === "İade Edildi"
+                          ? "iade-edildi"
+                          : recordS.Durum === "Teslim Edildi"
+                          ? "teslim-edildi"
+                          : recordS.Durum === "Onay Bekliyor"
+                          ? "onay-bekliyor"
+                          : recordS.Durum === "Yedek Parça Bekliyor"
+                          ? "yedek-parca"
+                          : recordS.Durum === "Problemli Ürün"
+                          ? "problemli-urun"
+                          : recordS.Durum === "Teslim Alınmadı"
+                          ? "teslim-alinmadi"
+                          : recordS.Durum === "Hazırlanıyor"
+                          ? "hazirlaniyor"
+                          : recordS.Durum === "Arıza Tespiti"
+                          ? "ariza-tespiti"
+                          : recordS.Durum === "Değişim Tamamlandı"
+                          ? "degisim-tamamlandi"
+                          : recordS.Durum === "Faturalandı"
+                          ? "faturalandi"
+                          : recordS.Durum === "Garantili Onarım"
+                          ? "garantili-onarim"
+                          : recordS.Durum === "Teslim Durumu"
+                          ? "teslim-durumu"
+                          : recordS.Durum === "Hurdaya Ayrıldı"
+                          ? "hurdaya-ayrildi"
+                          : recordS.Durum === "İade Tamamlandı"
+                          ? "iade-tamamlandi"
+                          : recordS.Durum === "İade Toplanıyor"
+                          ? "iade-toplaniyor"
+                          : recordS.Durum === "Kiralama"
+                          ? "kiralama"
+                          : recordS.Durum === "Montaj Yapılacak"
+                          ? "montaj-yapilacak"
+                          : recordS.Durum === "Onarım Aşamasında"
+                          ? "onarim-asamasinda"
+                          : recordS.Durum === "Onay Durumu"
+                          ? "onay-durumu"
+                          : recordS.Durum === "Parça Durumu"
+                          ? "parca-durumu"
+                          : recordS.Durum === "Periyodik Bakım"
+                          ? "periyodik-bakim"
+                          : recordS.Durum === "Satın Alındı"
+                          ? "satin-alindi"
+                          : recordS.Durum === "Servis Durumu"
+                          ? "servis-durumu"
+                          : recordS.Durum === "Sipariş Durumu"
+                          ? "siparis-durumu"
+                          : recordS.Durum === "Tahsilat Bekliyor"
+                          ? "tahsilat-bekliyor"
+                          : recordS.Durum === "Ücret Bildirilecek"
+                          ? "ucret-bildirilecek"
+                          : ""
                       }
                     >
                       {recordS.Durum}
@@ -1043,7 +982,7 @@ export default function HomePage() {
                 {[
                   { key: "fishNo", label: "Fis No" },
                   { key: "AdSoyad", label: "Ad Soyad" },
-                  { key: "TeslimAlmaTarihi", label: "Teslim Alma Tarihi" },
+                  { key: "fishNo", label: "Fis No" },
                   { key: "TelNo", label: "TelNo" },
                   { key: "Urun", label: "Ürün" },
                   { key: "Marka", label: "Marka" },
@@ -1059,9 +998,13 @@ export default function HomePage() {
                   { key: "Ucret", label: "Ücret" },
                   { key: "HazirlamaTarihi", label: "Hazırlama Tarihi" },
                   { key: "TeslimEtmeTarihi", label: "Teslim Etme Tarihi" },
-                  { key: "Durum", label: "Durum" }
+                  { key: "Durum", label: "Durum" },
                 ].map(({ key, label }) => (
-                  <th key={key} onClick={() => sortData(key)} style={{ cursor: "pointer" }}>
+                  <th
+                    key={key}
+                    onClick={() => sortData(key)}
+                    style={{ cursor: "pointer" }}
+                  >
                     {label}
                     {sortConfig.key === key &&
                       (sortConfig.direction === "asc" ? " ▲" : " ▼")}
@@ -1094,7 +1037,7 @@ export default function HomePage() {
                           id={`selected-product-${record.fishNo}`}
                           onChange={(e) => handleCheckboxChange(record, e)}
                           className="form-check-input custom-checkbox"
-                        style={{ width: "20px", height: "20px" }}
+                          style={{ width: "20px", height: "20px" }}
                         />
                       </td>
                       <td>{record.AdSoyad || "Bilinmiyor"}</td>
@@ -1179,69 +1122,70 @@ export default function HomePage() {
                       </td>
                       <td
                         id="gitdegistirya"
-                        className={`durum-container ${record.Durum === "Onarılıyor"
-                          ? "onariliyor"
-                          : record.Durum === "Tamamlandı"
+                        className={`durum-container ${
+                          record.Durum === "Onarılıyor"
+                            ? "onariliyor"
+                            : record.Durum === "Tamamlandı"
                             ? "tamamlandi"
                             : record.Durum === "Bekliyor"
-                              ? "bklyr"
-                              : record.Durum === "İade Edildi"
-                                ? "iade-edildi"
-                                : record.Durum === "Teslim Edildi"
-                                  ? "teslim-edildi"
-                                  : record.Durum === "Onay Bekliyor"
-                                    ? "onay-bekliyor"
-                                    : record.Durum === "Yedek Parça Bekliyor"
-                                      ? "yedek-parca"
-                                      : record.Durum === "Problemli Ürün"
-                                        ? "problemli-urun"
-                                        : record.Durum === "Teslim Alınmadı"
-                                          ? "teslim-alinmadi"
-                                          : record.Durum === "Hazırlanıyor"
-                                            ? "hazirlaniyor"
-                                            : record.Durum === "Arıza Tespiti"
-                                              ? "ariza-tespiti"
-                                              : record.Durum === "Değişim Tamamlandı"
-                                                ? "degisim-tamamlandi"
-                                                : record.Durum === "Faturalandı"
-                                                  ? "faturalandi"
-                                                  : record.Durum === "Garantili Onarım"
-                                                    ? "garantili-onarim"
-                                                    : record.Durum === "Teslim Durumu"
-                                                      ? "teslim-durumu"
-                                                      : record.Durum === "Hurdaya Ayrıldı"
-                                                        ? "hurdaya-ayrildi"
-                                                        : record.Durum === "İade Tamamlandı"
-                                                          ? "iade-tamamlandi"
-                                                          : record.Durum === "İade Toplanıyor"
-                                                            ? "iade-toplaniyor"
-                                                            : record.Durum === "Kiralama"
-                                                              ? "kiralama"
-                                                              : record.Durum === "Montaj Yapılacak"
-                                                                ? "montaj-yapilacak"
-                                                                : record.Durum === "Onarım Aşamasında"
-                                                                  ? "onarim-asamasinda"
-                                                                  : record.Durum === "Onay Durumu"
-                                                                    ? "onay-durumu"
-                                                                    : record.Durum === "Parça Durumu"
-                                                                      ? "parca-durumu"
-                                                                      : record.Durum === "Periyodik Bakım"
-                                                                        ? "periyodik-bakim"
-                                                                        : record.Durum === "Satın Alındı"
-                                                                          ? "satin-alindi"
-                                                                          : record.Durum === "Servis Durumu"
-                                                                            ? "servis-durumu"
-                                                                            : record.Durum === "Sipariş Durumu"
-                                                                              ? "siparis-durumu"
-                                                                              : record.Durum === "Tahsilat Bekliyor"
-                                                                                ? "tahsilat-bekliyor"
-                                                                                : record.Durum === "Ücret Bildirilecek"
-                                                                                  ? "ucret-bildirilecek"
-                                                                                  : "default"
-                          }`}
+                            ? "bklyr"
+                            : record.Durum === "İade Edildi"
+                            ? "iade-edildi"
+                            : record.Durum === "Teslim Edildi"
+                            ? "teslim-edildi"
+                            : record.Durum === "Onay Bekliyor"
+                            ? "onay-bekliyor"
+                            : record.Durum === "Yedek Parça Bekliyor"
+                            ? "yedek-parca"
+                            : record.Durum === "Problemli Ürün"
+                            ? "problemli-urun"
+                            : record.Durum === "Teslim Alınmadı"
+                            ? "teslim-alinmadi"
+                            : record.Durum === "Hazırlanıyor"
+                            ? "hazirlaniyor"
+                            : record.Durum === "Arıza Tespiti"
+                            ? "ariza-tespiti"
+                            : record.Durum === "Değişim Tamamlandı"
+                            ? "degisim-tamamlandi"
+                            : record.Durum === "Faturalandı"
+                            ? "faturalandi"
+                            : record.Durum === "Garantili Onarım"
+                            ? "garantili-onarim"
+                            : record.Durum === "Teslim Durumu"
+                            ? "teslim-durumu"
+                            : record.Durum === "Hurdaya Ayrıldı"
+                            ? "hurdaya-ayrildi"
+                            : record.Durum === "İade Tamamlandı"
+                            ? "iade-tamamlandi"
+                            : record.Durum === "İade Toplanıyor"
+                            ? "iade-toplaniyor"
+                            : record.Durum === "Kiralama"
+                            ? "kiralama"
+                            : record.Durum === "Montaj Yapılacak"
+                            ? "montaj-yapilacak"
+                            : record.Durum === "Onarım Aşamasında"
+                            ? "onarim-asamasinda"
+                            : record.Durum === "Onay Durumu"
+                            ? "onay-durumu"
+                            : record.Durum === "Parça Durumu"
+                            ? "parca-durumu"
+                            : record.Durum === "Periyodik Bakım"
+                            ? "periyodik-bakim"
+                            : record.Durum === "Satın Alındı"
+                            ? "satin-alindi"
+                            : record.Durum === "Servis Durumu"
+                            ? "servis-durumu"
+                            : record.Durum === "Sipariş Durumu"
+                            ? "siparis-durumu"
+                            : record.Durum === "Tahsilat Bekliyor"
+                            ? "tahsilat-bekliyor"
+                            : record.Durum === "Ücret Bildirilecek"
+                            ? "ucret-bildirilecek"
+                            : "default"
+                        }`}
                       >
                         {record.Durum}
-                        {(isAuthorized && userRole === "admin") ? (
+                        {isAuthorized && userRole === "admin" ? (
                           <button
                             onClick={() => navigate(`/record/${record.fishNo}`)}
                             className="duzenle-btn"

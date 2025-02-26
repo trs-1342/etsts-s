@@ -5,15 +5,14 @@ export default defineConfig({
   plugins: [react()],
   server: {
     strictPort: true,
+    port: 80, // 1342 yerine 80 olarak güncellendi
     watch: {
       usePolling: true,
     },
     headers: {
       "Access-Control-Allow-Origin": "*",
-      // "Cache-Control": "no-cache", // Önbelleği devre dışı bırak
     },
     host: "0.0.0.0",
-    port: 1342,
     cors: true,
   },
   resolve: {
