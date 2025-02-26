@@ -19,11 +19,11 @@ export default function ShowUserInfoPage() {
       }
 
       // alert("Çıkış başarılı.");
-      window.location.href = "http://192.168.0.140:1342/";
+      window.location.href = "http://192.168.0.140/";
     } catch (error) {
       console.error("Çıkış hatası:", error.message);
       // alert(`Çıkış Yapıldı, Çıkış hatası: ${error.message}`);
-      window.location.href = "http://192.168.0.140:1342/";
+      window.location.href = "http://192.168.0.140/";
     }
   };
 
