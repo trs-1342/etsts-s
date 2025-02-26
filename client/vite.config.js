@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     strictPort: true,
-    port: 80, // 1342 yerine 80 olarak güncellendi
+    port: 80,
     watch: {
       usePolling: true,
     },
