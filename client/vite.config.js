@@ -10,7 +10,6 @@ export default defineConfig({
     },
     headers: {
       "Access-Control-Allow-Origin": "*",
-      // "Cache-Control": "no-cache",
     },
     host: "0.0.0.0",
     port: 1342,
