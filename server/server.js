@@ -61,7 +61,7 @@ app.use(
 
 app.use(
   cors({
-    origin: "http://192.168.0.201:1342",
+    origin: "http://192.168.0.140",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -69,7 +69,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://192.168.0.201:1342");
+  res.header("Access-Control-Allow-Origin", "http://192.168.0.140");
   res.header("Access-Control-Allow-Credentials", "true"); // Kimlik bilgilerini kabul et
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // İzin verilen HTTP yöntemleri
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // İzin verilen başlıklar
@@ -170,8 +170,8 @@ wss.on("connection", (ws, req) => {
 function authMiddleware(req, res, next) {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
 
   if (!req.session || !req.session.user) {
@@ -274,7 +274,6 @@ app.post("/print", async (req, res) => {
 
       try {
         await printer.print(outputPath, {
-          // PRINTERS
           // printer: "Argox CP-2140 PPLB",
           printer: "Xprinter XP-470B",
           options: ["-o media=Custom.80x200mm"], // 80mm x 200mm termal etiket boyutu
@@ -298,88 +297,15 @@ app.post("/print", async (req, res) => {
   }
 });
 
-// COKLU PRINTER TARAMA 2
-// app.get("/api/printers", async (req, res) => {
-//   try {
-//     const printers = await getPrinters(); // Asenkron çağrı
-//     if (!Array.isArray(printers)) {
-//       throw new Error("Beklenmeyen yazıcı formatı");
-//     }
-//     res.json(printers.map((p) => p.name)); // Sadece yazıcı adlarını gönder
-//   } catch (error) {
-//     console.error("Yazıcıları tararken hata:", error);
-//     res.status(500).json({ error: "Yazıcıları tararken hata oluştu." });
-//   }
-// });
-
-// COKLU PRINTER TARAMA 1
-// app.post("/api/print", async (req, res) => {
-//   let { data, fishNo, AdSoyad, printerName } = req.body;
-
-//   if (!data || !fishNo || !AdSoyad || !printerName) {
-//     return res.status(400).json({ error: "Yazdırılacak veri eksik." });
-//   }
-
-//   try {
-//     data = Buffer.from(data, "base64").toString("utf-8");
-//     const desktopPath = path.join(os.homedir(), "Desktop", "enigma-pdfs");
-//     if (!fs.existsSync(desktopPath))
-//       fs.mkdirSync(desktopPath, { recursive: true });
-
-//     const formattedDate = moment().format("YYYY-MM-DD_HH-mm-ss");
-//     const sanitizedAdSoyad = AdSoyad.replace(/\s+/g, "_");
-//     const outputPath = path.join(
-//       desktopPath,
-//       `${fishNo}_${sanitizedAdSoyad}-${formattedDate}.pdf`
-//     );
-
-//     const doc = new PDFDocument({
-//       size: [80 * 2.83, 200 * 2.83],
-//       margins: { top: 5, left: 5, right: 5, bottom: 5 },
-//     });
-//     const writeStream = fs.createWriteStream(outputPath);
-//     doc.pipe(writeStream);
-//     doc.fontSize(14).text("KAYIT FİŞİ", { align: "center" }).moveDown(0.5);
-//     doc.text("-".repeat(56), { align: "center" }).moveDown(0.5);
-//     data
-//       .split("\n")
-//       .forEach((line) =>
-//         doc.fontSize(10).text(line, { align: "left" }).moveDown(0.3)
-//       );
-//     doc.end();
-
-//     writeStream.on("finish", async () => {
-//       console.log(`✅ PDF başarıyla oluşturuldu: ${outputPath}`);
-
-//       try {
-//         await printer.print(outputPath, { printer: printerName });
-//         console.log(`✅ Yazdırma tamamlandı: ${printerName}`);
-//         res.json({ message: "Baskı başarılı.", pdfPath: outputPath });
-//       } catch (printErr) {
-//         console.error("❌ Yazdırma hatası:", printErr);
-//         res.status(500).json({ error: "Yazdırma başarısız." });
-//       }
-//     });
-
-//     writeStream.on("error", (pdfErr) => {
-//       console.error("❌ PDF oluşturma hatası:", pdfErr);
-//       res.status(500).json({ error: "PDF oluşturma başarısız." });
-//     });
-//   } catch (error) {
-//     console.error("❌ Base64 çözme hatası:", error);
-//     res.status(500).json({ error: "Veri çözümleme hatası." });
-//   }
-// });
-
-function atob(str) {
-  return Buffer.from(str, "base64").toString("binary");
-}
+// function atob(str) {
+//   return Buffer.from(str, "base64").toString("binary");
+// }
 
 app.get("/api/checkAdmin", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const username = req.session?.user?.username;
 
@@ -416,8 +342,8 @@ app.get("/api/checkAdmin", (req, res) => {
 app.post("/api/logout", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   req.session.destroy((err) => {
     if (err) {
@@ -432,8 +358,8 @@ app.post("/api/logout", (req, res) => {
 app.post("/api/login", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { username, password } = req.body;
 
@@ -494,8 +420,8 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/check-product-access/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { fishNo } = req.params;
   const username = req.session.user?.username;
@@ -526,8 +452,8 @@ app.get("/api/check-product-access/:fishNo", (req, res) => {
 app.post("/api/check-page-access", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { username, page } = req.body;
 
@@ -578,8 +504,8 @@ app.post("/api/check-page-access", (req, res) => {
 app.get("/api/get-user-pages/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { username } = req.params;
 
@@ -632,8 +558,8 @@ app.get("/api/get-user-pages/:username", (req, res) => {
 app.get("/api/get-user-permissions/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { username } = req.params;
 
@@ -659,8 +585,8 @@ app.get("/api/get-user-permissions/:username", (req, res) => {
 app.get("/api/get-session-user", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   if (req.session.user) {
     res.json({ username: req.session.user.username });
@@ -672,8 +598,8 @@ app.get("/api/get-session-user", (req, res) => {
 app.get("/api/get-user-records/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { username } = req.params;
 
@@ -742,8 +668,8 @@ app.get("/api/get-user-records/:username", (req, res) => {
 app.post("/api/add-user", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { username, password, email, role } = req.body;
 
@@ -797,8 +723,8 @@ app.post("/api/add-user", async (req, res) => {
 app.put("/api/update-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const userId = req.params.id;
   const { username, email, role, password } = req.body;
@@ -865,8 +791,8 @@ app.put("/api/update-user/:id", async (req, res) => {
 app.delete("/api/delete-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { id } = req.params;
 
@@ -902,8 +828,8 @@ app.delete("/api/delete-user/:id", async (req, res) => {
 app.get("/api/get-users-data", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const query = "SELECT id, username, email, role, created_at FROM users";
 
@@ -920,8 +846,8 @@ app.get("/api/get-users-data", (req, res) => {
 app.get("/api/get-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const userId = req.params.id;
   const query =
@@ -944,8 +870,8 @@ app.get("/api/get-user/:id", (req, res) => {
 app.post("/api/update-settings-for-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const userId = req.params.id;
   const { allowedColumns } = req.body;
@@ -975,8 +901,8 @@ app.post("/api/update-settings-for-user/:id", (req, res) => {
 app.get("/api/get-user-settings/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const username = req.params.username; // URL'den gelen kullanıcı adı
   console.log(username);
@@ -1022,8 +948,8 @@ app.get("/api/get-user-settings/:username", (req, res) => {
 app.post("/api/change-user-settings", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { username, permissions } = req.body;
 
@@ -1095,8 +1021,8 @@ app.post("/api/change-user-settings", (req, res) => {
 app.get("/api/delivered-products", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const query = "SELECT * FROM records WHERE Durum = 'Teslim Edildi'";
   db.query(query, (err, results) => {
@@ -1117,8 +1043,8 @@ app.get("/api/delivered-products", (req, res) => {
 app.get("/api/getInfoProd/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const fishNo = req.params.fishNo;
 
@@ -1140,8 +1066,8 @@ app.get("/api/getInfoProd/:fishNo", (req, res) => {
 app.get("/api/protected", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
 
   const username = req.session.user?.username;
@@ -1188,8 +1114,8 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 app.get("/api/records", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { username, role } = req.user; // authMiddleware'den gelen kullanıcı bilgileri
 
@@ -1240,7 +1166,7 @@ app.get("/api/record/:fishNo", (req, res) => {
     }
 
     // ** eğer istek yetkili istemciden gelmiyorsa mesaj döndür **
-    if (clientIP !== "http://192.168.0.201:1342") {
+    if (clientIP !== "http://192.168.0.140") {
       return res
         .status(403)
         .json({ message: "Bu verilere erişim izniniz yok." });
@@ -1254,7 +1180,7 @@ app.get("/api/record/:fishNo", (req, res) => {
 app.get("/api/get-all-fishNos", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
+  if (clientIP !== "http://192.168.0.140") {
     return res.status(403).json({ message: "Bu verilere erişim izniniz yok." });
   }
 
@@ -1263,7 +1189,7 @@ app.get("/api/get-all-fishNos", (req, res) => {
   db.query(query, (err, results) => {
     if (err) {
       console.error("Veritabanı hatası:", err);
-      return res.status(500).json({ message: "FishNo verileri alınamadı." });
+      return res.status(500).json({ message: "fishNo verileri alınamadı." });
     }
 
     const fishNos = results.map((row) => row.fishNo); // fishNo değerlerini bir diziye çevir
@@ -1274,7 +1200,7 @@ app.get("/api/get-all-fishNos", (req, res) => {
 app.put("/api/record/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // İstemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
+  if (clientIP !== "http://192.168.0.140") {
     return res.status(403).json({ message: "Bu verilere erişim izniniz yok." });
   }
   const { fishNo } = req.params;
@@ -1291,6 +1217,7 @@ app.put("/api/record/:fishNo", (req, res) => {
     GarantiDurumu,
     Ucret,
     Sorunlar,
+    BirlikteAlinanlar,
     Aciklama,
     Yapilanlar,
     HazirlamaTarihi,
@@ -1314,6 +1241,7 @@ app.put("/api/record/:fishNo", (req, res) => {
     sanitizeInput(GarantiDurumu) || "",
     parseFloat(Ucret),
     // Ucret,
+    sanitizeInput(BirlikteAlinanlar) || "",
     sanitizeInput(Sorunlar) || "",
     sanitizeInput(Aciklama) || "",
     sanitizeInput(Yapilanlar) || "",
@@ -1325,7 +1253,7 @@ app.put("/api/record/:fishNo", (req, res) => {
   const query = `
     UPDATE records 
     SET AdSoyad = ?, TelNo = ?, SeriNo = ?, TeslimAlan = ?, Durum = ?, 
-        Teknisyen = ?, Urun = ?, Marka = ?, Model = ?, GarantiDurumu = ?, Ucret = ?, Sorunlar = ?, Aciklama = ?, Yapilanlar = ?,
+        Teknisyen = ?, Urun = ?, Marka = ?, Model = ?, GarantiDurumu = ?, Ucret = ?, BirlikteAlinanlar = ? ,Sorunlar = ?, Aciklama = ?, Yapilanlar = ?,
         HazirlamaTarihi = ?, TeslimEtmeTarihi = ?
     WHERE fishNo = ?
   `;
@@ -1351,8 +1279,8 @@ app.put("/api/record/:fishNo", (req, res) => {
 app.get("/api/export-records", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const query = `
     SELECT fishNo, AdSoyad, DATE_FORMAT(TeslimAlmaTarihi, '%Y-%m-%d %H:%i:%s') AS TeslimAlmaTarihi, 
@@ -1377,8 +1305,8 @@ app.get("/api/export-records", (req, res) => {
 app.post("/api/record", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
   const { AdSoyad } = req.body;
 
@@ -1400,121 +1328,28 @@ app.post("/api/record", (req, res) => {
   });
 });
 
-const generateFishNoID = () => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return (
-    "FSH-" +
-    chars[Math.floor(Math.random() * chars.length)] +
-    chars[Math.floor(Math.random() * chars.length)] +
-    chars[Math.floor(Math.random() * chars.length)] +
-    "-" +
-    Math.floor(1000 + Math.random() * 9000)
-  );
+// const generateFishNoID = () => {
+//   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+//   return (
+//     "FSH-" +
+//     chars[Math.floor(Math.random() * chars.length)] +
+//     chars[Math.floor(Math.random() * chars.length)] +
+//     chars[Math.floor(Math.random() * chars.length)] +
+//     "-" +
+//     Math.floor(1000 + Math.random() * 9000)
+//   );
+// };
+
+const generateCustomID = () => {
+  const randomDigits = () => Math.floor(100 + Math.random() * 900); // 100-999 arasında rastgele sayı üret
+  return `${randomDigits()}-${randomDigits()}-${randomDigits()}`;
 };
 
 app.post("/api/addpro", (req, res) => {
-  const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
-
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
-  }
-
-  const {
-    AdSoyad,
-    TelNo,
-    TeslimAlan,
-    Teknisyen,
-    SeriNo,
-    Urun,
-    Marka,
-    Model,
-    GarantiDurumu,
-    BirlikteAlinanlar,
-    Sorunlar,
-    Aciklama,
-  } = req.body;
-
-  if (
-    !AdSoyad ||
-    !TelNo ||
-    !TeslimAlan ||
-    !Teknisyen ||
-    !SeriNo ||
-    !Urun ||
-    !Marka ||
-    !Model ||
-    !GarantiDurumu ||
-    !Sorunlar
-  ) {
-    console.error("Eksik Alanlar:", req.body);
-    return res
-      .status(400)
-      .json({ message: "Tüm alanların doldurulması zorunludur!" });
-  }
-
-  const newId = generateFishNoID(); // Yeni FishNoID oluştur
-  const costumerId = generateFishNoID(); // Benzersiz müşteri ID'si oluştur
-
-  const recordQuery = `
-    INSERT INTO records 
-    (AdSoyad, TeslimAlmaTarihi, TelNo, TeslimAlan, Teknisyen, SeriNo, Urun, Marka, Model, GarantiDurumu, BirlikteAlinanlar, Sorunlar, Aciklama, Ucret, HazirlamaTarihi, TeslimEtmeTarihi, Durum)
-    VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, 'Bekliyor');
-  `;
-
-  const costumerQuery = `
-    INSERT INTO costumerData (id, AdSoyad, FishNoID) 
-    VALUES (?, ?, ?);
-  `;
-
-  db.query(
-    recordQuery,
-    [
-      AdSoyad,
-      TelNo,
-      TeslimAlan,
-      Teknisyen,
-      SeriNo,
-      Urun,
-      Marka,
-      Model,
-      GarantiDurumu,
-      BirlikteAlinanlar,
-      Sorunlar,
-      Aciklama,
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("SQL Hatası (records):", err.message);
-        return res
-          .status(500)
-          .json({ message: "Bir hata oluştu.", error: err.message });
-      }
-
-      // Eğer `records` ekleme başarılı olursa `costumerData`'ya da ekleme yapalım
-      db.query(costumerQuery, [costumerId, AdSoyad, newId], (err, result) => {
-        if (err) {
-          console.error("SQL Hatası (costumerData):", err.message);
-          return res
-            .status(500)
-            .json({ message: "Bir hata oluştu.", error: err.message });
-        }
-
-        res.status(201).json({
-          message: "Ürün başarıyla eklendi!",
-          recordId: result.insertId,
-          costumerId: costumerId,
-          fishNoID: newId,
-        });
-      });
-    }
-  );
-});
-
-app.post("/api/addpro", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip;
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
 
   const {
@@ -1551,122 +1386,7 @@ app.post("/api/addpro", (req, res) => {
   }
 
   const insertRecordQuery = `
-    INSERT INTO etstsr.record 
-    (AdSoyad, TeslimAlmaTarihi, TelNo, TeslimAlan, Teknisyen, SeriNo, Urun, Marka, Model, GarantiDurumu, BirlikteAlinanlar, Sorunlar, Aciklama, Ucret, HazirlamaTarihi, TeslimEtmeTarihi, Durum)
-    VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, 'Bekliyor');
-  `;
-
-  db.query(
-    insertRecordQuery,
-    [
-      AdSoyad,
-      TelNo,
-      TeslimAlan,
-      Teknisyen,
-      SeriNo,
-      Urun,
-      Marka,
-      Model,
-      GarantiDurumu,
-      BirlikteAlinanlar,
-      Sorunlar,
-      Aciklama,
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("SQL Hatası (records):", err.message);
-        return res
-          .status(500)
-          .json({ message: "Bir hata oluştu.", error: err.message });
-      }
-
-      // `fishNo` değerini almak için sorgu çalıştır
-      db.query(
-        "SELECT fishNo FROM etstsr.record ORDER BY id DESC LIMIT 1;",
-        (err, rows) => {
-          if (err) {
-            console.error("SQL Hatası (fishNo alma):", err.message);
-            return res
-              .status(500)
-              .json({ message: "FishNo alınamadı.", error: err.message });
-          }
-
-          const FishNoID = rows[0].fishNo; // Son eklenen fishNo değeri
-
-          if (!FishNoID) {
-            return res
-              .status(500)
-              .json({ message: "FishNo değeri bulunamadı!" });
-          }
-
-          // `costumerData` tablosuna ekleme
-          const costumerQuery = `
-          INSERT INTO costumerData (id, AdSoyad, FishNoID) 
-          VALUES (UUID(), ?, ?);
-        `;
-
-          db.query(costumerQuery, [AdSoyad, FishNoID], (err, result) => {
-            if (err) {
-              console.error("SQL Hatası (costumerData):", err.message);
-              return res
-                .status(500)
-                .json({ message: "Bir hata oluştu.", error: err.message });
-            }
-
-            res.status(201).json({
-              message: "Ürün başarıyla eklendi!",
-              recordId: result.insertId,
-              fishNoID: FishNoID,
-            });
-          });
-        }
-      );
-    }
-  );
-});
-
-app.post("/api/addpro", (req, res) => {
-  const clientIP = req.headers.origin || req.headers.referer || req.ip;
-
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
-  }
-
-  const {
-    AdSoyad,
-    TelNo,
-    TeslimAlan,
-    Teknisyen,
-    SeriNo,
-    Urun,
-    Marka,
-    Model,
-    GarantiDurumu,
-    BirlikteAlinanlar,
-    Sorunlar,
-    Aciklama,
-  } = req.body;
-
-  if (
-    !AdSoyad ||
-    !TelNo ||
-    !TeslimAlan ||
-    !Teknisyen ||
-    !SeriNo ||
-    !Urun ||
-    !Marka ||
-    !Model ||
-    !GarantiDurumu ||
-    !Sorunlar
-  ) {
-    console.error("Eksik Alanlar:", req.body);
-    return res
-      .status(400)
-      .json({ message: "Tüm alanların doldurulması zorunludur!" });
-  }
-
-  const insertRecordQuery = `
-    INSERT INTO etstsr.record 
+    INSERT INTO etstsr.records 
     (AdSoyad, TeslimAlmaTarihi, TelNo, TeslimAlan, Teknisyen, SeriNo, Urun, Marka, Model, GarantiDurumu, BirlikteAlinanlar, Sorunlar, Aciklama, Ucret, HazirlamaTarihi, TeslimEtmeTarihi, Durum)
     VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, 'Bekliyor');
   `;
@@ -1704,37 +1424,44 @@ app.post("/api/addpro", (req, res) => {
             console.error("SQL Hatası (fishNo alma):", err.message);
             return res
               .status(500)
-              .json({ message: "FishNo alınamadı.", error: err.message });
+              .json({ message: "fishNo alınamadı.", error: err.message });
           }
 
           if (!rows || rows.length === 0) {
             return res
               .status(500)
-              .json({ message: "FishNo değeri bulunamadı!" });
+              .json({ message: "fishNo değeri bulunamadı!" });
           }
 
-          const FishNoID = rows[0].fishNo; // FishNo değerini al
+          const fishNoID = rows[0].fishNo; // fishNo değerini al
+          const customID = generateCustomID(); // Yeni formatta ID oluştur
 
           // **costumerData'ya ekle**
           const costumerQuery = `
-            INSERT INTO etstsr.costumerData (id, AdSoyad, FishNoID) 
-            VALUES (UUID(), ?, ?);
+            INSERT INTO etstsr.costumerData (id, AdSoyad, fishNoID) 
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE fishNoID = VALUES(fishNoID);
           `;
 
-          db.query(costumerQuery, [AdSoyad, FishNoID], (err, result) => {
-            if (err) {
-              console.error("SQL Hatası (costumerData ekleme):", err.message);
-              return res
-                .status(500)
-                .json({ message: "Bir hata oluştu.", error: err.message });
-            }
+          db.query(
+            costumerQuery,
+            [customID, AdSoyad, fishNoID],
+            (err, result) => {
+              if (err) {
+                console.error("SQL Hatası (costumerData ekleme):", err.message);
+                return res
+                  .status(500)
+                  .json({ message: "Bir hata oluştu.", error: err.message });
+              }
 
-            res.status(201).json({
-              message: "Ürün başarıyla eklendi!",
-              recordId: result.insertId,
-              fishNoID: FishNoID,
-            });
-          });
+              res.status(201).json({
+                message: "Ürün başarıyla eklendi!",
+                recordId: result.insertId,
+                fishNoID: fishNoID,
+                customID: customID, // Yeni oluşturulan ID'yi döndür
+              });
+            }
+          );
         }
       );
     }
@@ -1744,8 +1471,8 @@ app.post("/api/addpro", (req, res) => {
 app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
 
   const { fishNo } = req.params;
@@ -1778,23 +1505,19 @@ app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
 app.get("/", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/");
   }
 });
 
 app.get("*", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.140") {
+    return res.redirect("http://192.168.0.140/*");
   }
 });
 
-// server.listen(PORT, () => {
-//   console.log(`http://192.168.0.201:${PORT}`);
-// });
-
-server.listen(PORT, "192.168.0.201", () => {
-  console.log(`http://192.168.0.201:${PORT}`);
+server.listen(PORT, "192.168.0.140", () => {
+  console.log(`http://192.168.0.140:${PORT}`);
 });

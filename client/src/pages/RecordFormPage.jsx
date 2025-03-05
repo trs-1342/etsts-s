@@ -26,6 +26,8 @@ export default function EditPage() {
   // const navigate = useNavigate();
   // const [kayit, setKayit] = useState(null);
   // const [hata, setHata] = useState("");
+  const [userId, setUserId] = useState(null); // Initialize userId state
+
   const { fishNo } = useParams();
   const navigate = useNavigate();
   const [kayit, setKayit] = useState(null);
@@ -41,7 +43,7 @@ export default function EditPage() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/checkAdmin",
+          "http://192.168.0.140:2431/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -96,7 +98,7 @@ export default function EditPage() {
       return;
     }
 
-    fetch(`http://192.168.0.201:2431/api/record/${fishNo}`)
+    fetch(`http://192.168.0.140:2431/api/record/${fishNo}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP hata kodu: ${response.status}`);
@@ -164,7 +166,7 @@ export default function EditPage() {
       })
     );
 
-    fetch(`http://192.168.0.201:2431/api/record/${fishNo}`, {
+    fetch(`http://192.168.0.140:2431/api/record/${fishNo}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(temizKayit),
@@ -542,6 +544,21 @@ export default function EditPage() {
           </div>
         </div>
         <div className="col-12">
+          <label htmlFor="BirlikteAlinanlar" className="form-label">
+            Birlikte Alınanlar:
+          </label>
+          <textarea
+            id="BirlikteAlinanlar"
+            name="BirlikteAlinanlar"
+            placeholder={kayit.BirlikteAlinanlar || ""}
+            onChange={handleInputChange}
+            className="form-control"
+            rows="3"
+            value={kayit.BirlikteAlinanlar || ""}
+            style={{ minHeight: "100px", maxHeight: "300px" }}
+          ></textarea>
+        </div>
+        <div className="col-12">
           <label htmlFor="Sorunlar" className="form-label">
             Sorunlar:
           </label>
@@ -558,7 +575,7 @@ export default function EditPage() {
         </div>
         <div className="col-12">
           <label htmlFor="Yapilanlar" className="form-label">
-            Yapilanlar
+            Yapılanlar
           </label>
           <textarea
             id="Yapilanlar"

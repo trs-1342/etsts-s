@@ -15,7 +15,7 @@ export default function ControlledRecordsPage() {
 
         const fetchUserRecords = async () => {
             try {
-                const response = await axios.get(`http://192.168.0.201:2431/api/get-user-records/${username}`);
+                const response = await axios.get(`http://192.168.0.140:2431/api/get-user-records/${username}`);
                 setRecords(response.data); // Çekilen verileri state'e kaydet
             } catch (error) {
                 console.error("Kullanıcı verilerini çekerken hata oluştu:", error);

@@ -8,6 +8,7 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { MdEditSquare } from "react-icons/md";
 import "../css/HomePage.css";
 import "../css/DeliveredProductsPagecss.css";
+import ToolsPanel from "./ToolsPanel";
 
 function formatTarihVeSaat(tarih) {
   if (!tarih) return "Bilinmiyor";
@@ -44,7 +45,7 @@ export default function DeliveredProductsPage() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/checkAdmin",
+          "http://192.168.0.140:2431/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -69,7 +70,7 @@ export default function DeliveredProductsPage() {
     const fetchTeslimEdilenler = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/delivered-products"
+          "http://192.168.0.140:2431/api/delivered-products"
         );
 
         if (!response.ok) {
@@ -205,11 +206,10 @@ export default function DeliveredProductsPage() {
       !filtreTarihi ||
       (kayit.TeslimAlmaTarihi &&
         new Date(kayit.TeslimAlmaTarihi).toISOString().split("T")[0] ===
-        filtreTarihi);
+          filtreTarihi);
 
     return garantiUygun && tarihUygun;
   });
-
 
   const toggleDetay = (index) => {
     setAcikDetaylar((prevState) => ({
@@ -248,7 +248,6 @@ export default function DeliveredProductsPage() {
     return new Date(year, month - 1, day, hour, minute);
   }
 
-
   const sortData = (key) => {
     let direction = "asc";
 
@@ -268,7 +267,11 @@ export default function DeliveredProductsPage() {
       if (!b[key]) return -1;
 
       // Eğer tarih sıralanıyorsa, önce parse işlemi yap
-      if (key === "TeslimAlmaTarihi" || key === "HazirlamaTarihi" || key === "TeslimEtmeTarihi") {
+      if (
+        key === "TeslimAlmaTarihi" ||
+        key === "HazirlamaTarihi" ||
+        key === "TeslimEtmeTarihi"
+      ) {
         const dateA = parseDateString(a[key]);
         const dateB = parseDateString(b[key]);
 
@@ -299,7 +302,7 @@ export default function DeliveredProductsPage() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://192.168.0.201:2431/api/logout", {
+      const response = await fetch("http://192.168.0.140:2431/api/logout", {
         method: "POST",
         credentials: "include", // Çerezleri gönder
       });
@@ -310,11 +313,11 @@ export default function DeliveredProductsPage() {
       }
 
       // alert("Çıkış başarılı.");
-      window.location.href = "http://192.168.0.201:1342/";
+      window.location.href = "http://192.168.0.140/";
     } catch (error) {
       console.error("Çıkış hatası:", error.message);
       // alert(`Çıkış Yapıldı, Çıkış hatası: ${error.message}`);
-      window.location.href = "http://192.168.0.201:1342/";
+      window.location.href = "http://192.168.0.140/";
     }
   };
 
@@ -489,7 +492,7 @@ export default function DeliveredProductsPage() {
 
   return (
     <>
-      <div
+      {/* <div
         className="tools-panel-header"
         onClick={toggleToolsPanel}
         style={{
@@ -508,7 +511,7 @@ export default function DeliveredProductsPage() {
         }}
       >
         {isToolsPanelOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-      </div>
+      </div> 
       {isToolsPanelOpen && (
         <div className="row align-items-center mt-3 mb-3 ms-3">
           <div className="col-auto">
@@ -634,7 +637,10 @@ export default function DeliveredProductsPage() {
             </button>
           </div>
         </div>
-      )}
+      )}*/}
+
+      <ToolsPanel />
+
       <div className="table mt-1">
         <table
           border="1"
@@ -662,9 +668,13 @@ export default function DeliveredProductsPage() {
                 { key: "Aciklama", label: "Açıklama" },
                 { key: "HazirlamaTarihi", label: "Hazırlama Tarihi" },
                 { key: "TeslimEtmeTarihi", label: "Teslim Etme Tarihi" },
-                { key: "Durum", label: "Durum" }
+                { key: "Durum", label: "Durum" },
               ].map(({ key, label }) => (
-                <th key={key} onClick={() => sortData(key)} style={{ cursor: "pointer" }}>
+                <th
+                  key={key}
+                  onClick={() => sortData(key)}
+                  style={{ cursor: "pointer" }}
+                >
                   {label}
                   {sortConfig.key === key &&
                     (sortConfig.direction === "asc" ? " ▲" : " ▼")}
@@ -674,194 +684,193 @@ export default function DeliveredProductsPage() {
           </thead>
 
           <tbody>
-            {
-
-              filteredTeslimEdilenKayitlar.length > 0 ? (
-
-                filteredTeslimEdilenKayitlar.map((kayit, index) => (
-                  <tr key={kayit.fishNo || `record-${index}`}>
-                    <td>
-                      <a
-                        className="btn btn-sm btn-secondary d-block mb-2 fs-3"
-                        href={`/product-info/${kayit.fishNo || index}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {kayit.fishNo}
-                      </a>
-                      <span className="glyphicon d-block mb-2">
-                        #{idInListe++}
-                      </span>
-                      <input
-                        type="checkbox"
-                        name="selected-product"
-                        id={`selected-product-${kayit.fishNo}`}
-                        onChange={(e) => handleCheckboxChange(kayit, e)}
-                        className="form-check-input custom-checkbox"
-                        style={{ width: "20px", height: "20px" }}
-                      />
-                    </td>
-                    <td>{kayit.AdSoyad || "Bilinmiyor"}</td>
-                    <td>
-                      {formatTarihVeSaat(kayit.TeslimAlmaTarihi) || "Bilinmiyor"}
-                    </td>
-                    <td>{kayit.TelNo || "Bilinmiyor"}</td>
-                    <td>{kayit.Urun || "Bilinmiyor"}</td>
-                    <td>{kayit.Marka || "Bilinmiyor"}</td>
-                    <td>{kayit.Model || "Bilinmiyor"}</td>
-                    <td>{kayit.SeriNo || "Bilinmiyor"}</td>
-                    <td>{kayit.GarantiDurumu || "Bilinmiyor"}</td>
-                    <td>{kayit.TeslimAlan || "Bilinmiyor"}</td>
-                    <td>{kayit.Teknisyen || "Bilinmiyor"}</td>
-                    <td>{kayit.Ucret || "0"}₺</td>
-                    <td>
-                      {kayit?.Sorunlar?.length > 100 ? (
-                        <>
-                          <span className="text-break">
-                            {acikDetaylar[index]
-                              ? kayit.Sorunlar
-                              : `${kayit.Sorunlar.slice(0, 50)}...`}
-                          </span>
-                          <button
-                            onClick={() => toggleDetay(index)}
-                            className="btn btn-sm btn-info mt-1"
-                          >
-                            {acikDetaylar[index] ? "Daha Az" : "Daha Fazla"}
-                          </button>
-                        </>
-                      ) : (
-                        <span>
-                          {kayit.Sorunlar || "Sorun bilgisi mevcut değil"}
+            {filteredTeslimEdilenKayitlar.length > 0 ? (
+              filteredTeslimEdilenKayitlar.map((kayit, index) => (
+                <tr key={kayit.fishNo || `record-${index}`}>
+                  <td>
+                    <a
+                      className="btn btn-sm btn-secondary d-block mb-2 fs-3"
+                      href={`/product-info/${kayit.fishNo || index}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {kayit.fishNo}
+                    </a>
+                    <span className="glyphicon d-block mb-2">
+                      #{idInListe++}
+                    </span>
+                    <input
+                      type="checkbox"
+                      name="selected-product"
+                      id={`selected-product-${kayit.fishNo}`}
+                      onChange={(e) => handleCheckboxChange(kayit, e)}
+                      className="form-check-input custom-checkbox"
+                      style={{ width: "20px", height: "20px" }}
+                    />
+                  </td>
+                  <td>{kayit.AdSoyad || "Bilinmiyor"}</td>
+                  <td>
+                    {formatTarihVeSaat(kayit.TeslimAlmaTarihi) || "Bilinmiyor"}
+                  </td>
+                  <td>{kayit.TelNo || "Bilinmiyor"}</td>
+                  <td>{kayit.Urun || "Bilinmiyor"}</td>
+                  <td>{kayit.Marka || "Bilinmiyor"}</td>
+                  <td>{kayit.Model || "Bilinmiyor"}</td>
+                  <td>{kayit.SeriNo || "Bilinmiyor"}</td>
+                  <td>{kayit.GarantiDurumu || "Bilinmiyor"}</td>
+                  <td>{kayit.TeslimAlan || "Bilinmiyor"}</td>
+                  <td>{kayit.Teknisyen || "Bilinmiyor"}</td>
+                  <td>{kayit.Ucret || "0"}₺</td>
+                  <td>
+                    {kayit?.Sorunlar?.length > 100 ? (
+                      <>
+                        <span className="text-break">
+                          {acikDetaylar[index]
+                            ? kayit.Sorunlar
+                            : `${kayit.Sorunlar.slice(0, 50)}...`}
                         </span>
-                      )}
-                    </td>
-                    <td>
-                      {kayit?.Yapilanlar?.length > 100 ? (
-                        <>
-                          <span className="text-break">
-                            {acikYapilanlar[index]
-                              ? kayit.Yapilanlar
-                              : `${kayit.Yapilanlar.slice(0, 50)}...`}
-                          </span>
-                          <button
-                            onClick={() => toggleYapilanlar(index)}
-                            className="btn btn-sm btn-info mt-1"
-                          >
-                            {acikYapilanlar[index] ? "Daha Az" : "Daha Fazla"}
-                          </button>
-                        </>
-                      ) : (
-                        <span>{kayit.Yapilanlar || ""}</span>
-                      )}
-                    </td>
-                    <td>
-                      {kayit.Aciklama?.length > 100 ? (
-                        <>
-                          <span className="text-break">
-                            {acikAciklama[index]
-                              ? kayit.Aciklama
-                              : `${kayit.Aciklama.slice(0, 50)}...`}
-                          </span>
-                          <button
-                            onClick={() => toggleAciklama(index)}
-                            className="btn btn-sm btn-info mt-1"
-                          >
-                            {acikAciklama[index] ? "Daha Az" : "Daha Fazla"}
-                          </button>
-                        </>
-                      ) : (
-                        <span>{kayit.Aciklama || ""}</span>
-                      )}
-                    </td>
-                    <td>
-                      {formatTarihVeSaat(kayit.HazirlamaTarihi) ||
-                        "Daha Belirtilmedi"}
-                    </td>
-                    <td>
-                      {formatTarihVeSaat(kayit.TeslimEtmeTarihi) ||
-                        "Daha Belirtilmedi"}
-                    </td>
-                    <td
-                      id="gitdegistirya"
-                      className={`durum-container ${kayit.Durum === "Onarılıyor"
+                        <button
+                          onClick={() => toggleDetay(index)}
+                          className="btn btn-sm btn-info mt-1"
+                        >
+                          {acikDetaylar[index] ? "Daha Az" : "Daha Fazla"}
+                        </button>
+                      </>
+                    ) : (
+                      <span>
+                        {kayit.Sorunlar || "Sorun bilgisi mevcut değil"}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    {kayit?.Yapilanlar?.length > 100 ? (
+                      <>
+                        <span className="text-break">
+                          {acikYapilanlar[index]
+                            ? kayit.Yapilanlar
+                            : `${kayit.Yapilanlar.slice(0, 50)}...`}
+                        </span>
+                        <button
+                          onClick={() => toggleYapilanlar(index)}
+                          className="btn btn-sm btn-info mt-1"
+                        >
+                          {acikYapilanlar[index] ? "Daha Az" : "Daha Fazla"}
+                        </button>
+                      </>
+                    ) : (
+                      <span>{kayit.Yapilanlar || ""}</span>
+                    )}
+                  </td>
+                  <td>
+                    {kayit.Aciklama?.length > 100 ? (
+                      <>
+                        <span className="text-break">
+                          {acikAciklama[index]
+                            ? kayit.Aciklama
+                            : `${kayit.Aciklama.slice(0, 50)}...`}
+                        </span>
+                        <button
+                          onClick={() => toggleAciklama(index)}
+                          className="btn btn-sm btn-info mt-1"
+                        >
+                          {acikAciklama[index] ? "Daha Az" : "Daha Fazla"}
+                        </button>
+                      </>
+                    ) : (
+                      <span>{kayit.Aciklama || ""}</span>
+                    )}
+                  </td>
+                  <td>
+                    {formatTarihVeSaat(kayit.HazirlamaTarihi) ||
+                      "Daha Belirtilmedi"}
+                  </td>
+                  <td>
+                    {formatTarihVeSaat(kayit.TeslimEtmeTarihi) ||
+                      "Daha Belirtilmedi"}
+                  </td>
+                  <td
+                    id="gitdegistirya"
+                    className={`durum-container ${
+                      kayit.Durum === "Onarılıyor"
                         ? "onariliyor"
                         : kayit.Durum === "Tamamlandı"
-                          ? "tamamlandi"
-                          : kayit.Durum === "Bekliyor"
-                            ? "bklyr"
-                            : kayit.Durum === "İade Edildi"
-                              ? "iade-edildi"
-                              : kayit.Durum === "Teslim Edildi"
-                                ? "teslim-edildi"
-                                : kayit.Durum === "Onay Bekliyor"
-                                  ? "onay-bekliyor"
-                                  : kayit.Durum === "Yedek Parça Bekliyor"
-                                    ? "yedek-parca"
-                                    : kayit.Durum === "Problemli Ürün"
-                                      ? "problemli-urun"
-                                      : kayit.Durum === "Teslim Alınmadı"
-                                        ? "teslim-alinmadi"
-                                        : kayit.Durum === "Hazırlanıyor"
-                                          ? "hazirlaniyor"
-                                          : kayit.Durum === "Arıza Tespiti"
-                                            ? "ariza-tespiti"
-                                            : kayit.Durum === "Değişim Tamamlandı"
-                                              ? "degisim-tamamlandi"
-                                              : kayit.Durum === "Faturalandı"
-                                                ? "faturalandi"
-                                                : kayit.Durum === "Garantili Onarım"
-                                                  ? "garantili-onarim"
-                                                  : kayit.Durum === "Teslim Durumu"
-                                                    ? "teslim-durumu"
-                                                    : kayit.Durum === "Hurdaya Ayrıldı"
-                                                      ? "hurdaya-ayrildi"
-                                                      : kayit.Durum === "İade Tamamlandı"
-                                                        ? "iade-tamamlandi"
-                                                        : kayit.Durum === "İade Toplanıyor"
-                                                          ? "iade-toplaniyor"
-                                                          : kayit.Durum === "Kiralama"
-                                                            ? "kiralama"
-                                                            : kayit.Durum === "Montaj Yapılacak"
-                                                              ? "montaj-yapilacak"
-                                                              : kayit.Durum === "Onarım Aşamasında"
-                                                                ? "onarim-asamasinda"
-                                                                : kayit.Durum === "Onay Durumu"
-                                                                  ? "onay-durumu"
-                                                                  : kayit.Durum === "Parça Durumu"
-                                                                    ? "parca-durumu"
-                                                                    : kayit.Durum === "Periyodik Bakım"
-                                                                      ? "periyodik-bakim"
-                                                                      : kayit.Durum === "Satın Alındı"
-                                                                        ? "satin-alindi"
-                                                                        : kayit.Durum === "Servis Durumu"
-                                                                          ? "servis-durumu"
-                                                                          : kayit.Durum === "Sipariş Durumu"
-                                                                            ? "siparis-durumu"
-                                                                            : kayit.Durum === "Tahsilat Bekliyor"
-                                                                              ? "tahsilat-bekliyor"
-                                                                              : kayit.Durum === "Ücret Bildirilecek"
-                                                                                ? "ucret-bildirilecek"
-                                                                                : "default"
-                        }`}
-                    >
-                      {kayit.Durum}
-                      {(isAuthorized && userRole === "admin") ? (
-                        <button
-                          onClick={() => navigate(`/record/${kayit.fishNo}`)}
-                          className="duzenle-btn"
-                        >
-                          <MdEditSquare />
-                        </button>
-                      ) : null}
-                    </td>
-                  </tr>
-                ))) : (
-                <tr>
-                  <td colSpan="19" className="bg-danger text-center">
-                    Kayıt bulunamadı
+                        ? "tamamlandi"
+                        : kayit.Durum === "Bekliyor"
+                        ? "bklyr"
+                        : kayit.Durum === "İade Edildi"
+                        ? "iade-edildi"
+                        : kayit.Durum === "Teslim Edildi"
+                        ? "teslim-edildi"
+                        : kayit.Durum === "Onay Bekliyor"
+                        ? "onay-bekliyor"
+                        : kayit.Durum === "Yedek Parça Bekliyor"
+                        ? "yedek-parca"
+                        : kayit.Durum === "Problemli Ürün"
+                        ? "problemli-urun"
+                        : kayit.Durum === "Teslim Alınmadı"
+                        ? "teslim-alinmadi"
+                        : kayit.Durum === "Hazırlanıyor"
+                        ? "hazirlaniyor"
+                        : kayit.Durum === "Arıza Tespiti"
+                        ? "ariza-tespiti"
+                        : kayit.Durum === "Değişim Tamamlandı"
+                        ? "degisim-tamamlandi"
+                        : kayit.Durum === "Faturalandı"
+                        ? "faturalandi"
+                        : kayit.Durum === "Garantili Onarım"
+                        ? "garantili-onarim"
+                        : kayit.Durum === "Teslim Durumu"
+                        ? "teslim-durumu"
+                        : kayit.Durum === "Hurdaya Ayrıldı"
+                        ? "hurdaya-ayrildi"
+                        : kayit.Durum === "İade Tamamlandı"
+                        ? "iade-tamamlandi"
+                        : kayit.Durum === "İade Toplanıyor"
+                        ? "iade-toplaniyor"
+                        : kayit.Durum === "Kiralama"
+                        ? "kiralama"
+                        : kayit.Durum === "Montaj Yapılacak"
+                        ? "montaj-yapilacak"
+                        : kayit.Durum === "Onarım Aşamasında"
+                        ? "onarim-asamasinda"
+                        : kayit.Durum === "Onay Durumu"
+                        ? "onay-durumu"
+                        : kayit.Durum === "Parça Durumu"
+                        ? "parca-durumu"
+                        : kayit.Durum === "Periyodik Bakım"
+                        ? "periyodik-bakim"
+                        : kayit.Durum === "Satın Alındı"
+                        ? "satin-alindi"
+                        : kayit.Durum === "Servis Durumu"
+                        ? "servis-durumu"
+                        : kayit.Durum === "Sipariş Durumu"
+                        ? "siparis-durumu"
+                        : kayit.Durum === "Tahsilat Bekliyor"
+                        ? "tahsilat-bekliyor"
+                        : kayit.Durum === "Ücret Bildirilecek"
+                        ? "ucret-bildirilecek"
+                        : "default"
+                    }`}
+                  >
+                    {kayit.Durum}
+                    {isAuthorized && userRole === "admin" ? (
+                      <button
+                        onClick={() => navigate(`/record/${kayit.fishNo}`)}
+                        className="duzenle-btn"
+                      >
+                        <MdEditSquare />
+                      </button>
+                    ) : null}
                   </td>
                 </tr>
-              )}
+              ))
+            ) : (
+              <tr>
+                <td colSpan="19" className="bg-danger text-center">
+                  Kayıt bulunamadı
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

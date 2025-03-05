@@ -5,14 +5,18 @@ import { useUser } from "./UserContext";
 export default function LoginPanelPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
   const { setUser } = useUser();
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    // Eğer kullanıcı bilgisi varsa ve rolü admin değilse,
-    // ayrıca mevcut sayfa "/show-user-status" değilse yönlendir.
+    if (storedUser) {
+      setUsername(storedUser.username);
+      setRememberMe(true);
+    }
+
     if (
       storedUser &&
       storedUser.role !== "admin" &&
@@ -26,11 +30,9 @@ export default function LoginPanelPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://192.168.0.201:2431/api/login", {
+      const response = await fetch("http://192.168.0.140:2431/api/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ username, password }),
       });
@@ -39,10 +41,16 @@ export default function LoginPanelPage() {
 
       if (response.ok) {
         setUser({ username, role: data.user.role });
-        localStorage.setItem(
-          "user",
-          JSON.stringify({ username, role: data.user.role })
-        );
+
+        if (rememberMe) {
+          localStorage.setItem(
+            "user",
+            JSON.stringify({ username, role: data.user.role })
+          );
+        } else {
+          localStorage.removeItem("user");
+        }
+
         navigate(data.redirectTo);
       } else {
         setMessage(data.message || "Bilinmeyen bir hata oluştu.");
@@ -68,20 +76,7 @@ export default function LoginPanelPage() {
             style={{ userSelect: "none", pointerEvents: "none" }}
           />
         </div>
-        {/* <div className="text-center w-100 bg-danger rounded"
-        style={{
-          width: "400px !important",
-        }}
-        >
-          <p
-            style={{
-              fontFamily: "Lora, serif",
-            }}
-            className="text-break w-100"
-          >
-            Bilgisayarınız size bozulmasın, Biz ona bakalım, O da size baksın.
-          </p>
-        </div> */}
+
         <div className="login-form">
           <form onSubmit={handleSubmit}>
             <div className="mb-2">
@@ -89,16 +84,29 @@ export default function LoginPanelPage() {
                 placeholder="Username..."
                 type="text"
                 className="form-control fw-semibold"
+                value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
-            <div className="mb-4">
+            <div className="mb-2">
               <input
                 placeholder="Password..."
                 type="password"
                 className="form-control fw-semibold"
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </div>
+            <div className="form-check mb-4">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="rememberMe">
+                Beni Hatırla
+              </label>
             </div>
             <button type="submit" className="btn btn-success fw-medium w-100">
               Login

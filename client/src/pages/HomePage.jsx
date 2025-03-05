@@ -2,16 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import * as XLSX from "xlsx";
-import { FaBars, FaTimes, FaArchive } from "react-icons/fa";
-import { IoHome } from "react-icons/io5";
-import { IoMdLogOut } from "react-icons/io";
-import { IoSettingsSharp } from "react-icons/io5";
 import { MdEditSquare } from "react-icons/md";
 import "../css/HomePage.css";
 import usePageAccess from "./usePageAccess";
-// import { FaSortUp, FaSortDown } from "react-icons/fa"; // İkonları ekledik
-// import SidePanel from "./SidePanelCom.jsx"
-// import axios from "axios";
+import ToolsPanel from "./ToolsPanel";
 
 function formatTarihVeSaat(tarih) {
   if (!tarih) return "Bilinmiyor";
@@ -29,10 +23,6 @@ function formatTarihVeSaat(tarih) {
 }
 
 export default function HomePage() {
-  const { hasAccess, loading } = usePageAccess("HomePage");
-
-  //
-
   const navigate = useNavigate();
   const [kayitlar, setKayitlar] = useState([]);
   const [filtre, setFiltre] = useState("Hepsi");
@@ -40,22 +30,22 @@ export default function HomePage() {
   const [filtreTarihi, setFiltreTarihi] = useState("");
   const [acikDetaylar, setAcikDetaylar] = useState({});
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-  const [isToolsPanelOpen, setIsToolsPanelOpen] = useState(true);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredResults, setFilteredResults] = useState([]);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [role, setRole] = useState("");
   const [userRole, setUserRole] = useState(""); // Kullanıcı rolü için state
+  const { hasAccess, loading } = usePageAccess("HomePage");
+  const [role, setRole] = useState("");
   const [allowedColumns, setAllowedColumns] = useState([]);
   const [userId, setUserId] = useState(null); // Initialize userId state
   const [userData, setUserData] = useState(null);
 
-  // Check if the user is authorized and set userId
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/checkAdmin",
+          "http://192.168.0.140:2431/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -77,35 +67,17 @@ export default function HomePage() {
     fetchUser();
   }, []);
 
-  // useEffect(() => {
-  //   const fetchRecords = async () => {
-  //     try {
-  //       const response = await fetch("http://192.168.0.201:2431/api/records", {
-  //         credentials: "include",
-  //       });
-  //       if (!response.ok) throw new Error("Yetkisiz erişim!");
-
-  //       const data = await response.json();
-  //       setKayitlar(data.data);
-  //     } catch (error) {
-  //       console.error("Kayıtları getirirken hata:", error.message);
-  //     }
-  //   };
-
-  //   fetchRecords();
-  // }, [isAuthorized]);
-
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        const response = await fetch("http://192.168.0.201:2431/api/records", {
+        const response = await fetch("http://192.168.0.140:2431/api/records", {
           credentials: "include",
         });
         if (!response.ok) throw new Error("Yetkisiz erişim!");
 
         const data = await response.json();
 
-        // API'den gelen verileri teslim alma tarihine göre sıralayarak setKayitlar'a aktarıyoruz
+        // API'den gelen verileri teslim alma tarihine göre sıralayarak setKayitlar'a aktarıyor
         const sortedData = [...data.data].sort((a, b) => {
           if (!a.TeslimAlmaTarihi) return 1;
           if (!b.TeslimAlmaTarihi) return -1;
@@ -125,8 +97,7 @@ export default function HomePage() {
     };
 
     fetchRecords();
-  }, [isAuthorized]); // API çağrısı tamamlandıktan sonra çalışır.
-
+  }, [isAuthorized]); // API cagrisi tamamlandıktan sonra calisir.
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
@@ -176,8 +147,6 @@ export default function HomePage() {
   };
 
   function parseDateString(dateString) {
-    // Örnek dateString: "10/01/2025 10:30"
-    // Boşluğa göre ayır ("10/01/2025" ve "10:30")
     const [datePart, timePart] = dateString.split(" ");
     if (!datePart || !timePart) return null;
 
@@ -190,10 +159,10 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    // Varsayılanı "TeslimAlmaTarihi"ne göre desc olarak ayarla
+    // varsayılani "TeslimAlmaTarihi"ne gore desc olarak ayarla
     setSortConfig({ key: "TeslimAlmaTarihi", direction: "desc" });
 
-    // Sonra da kayitlar'ı yeniden düzenle
+    // kayitlari yeniden duzenle
     const sorted = [...kayitlar].sort((a, b) => {
       if (!a.TeslimAlmaTarihi) return 1;
       if (!b.TeslimAlmaTarihi) return -1;
@@ -203,77 +172,33 @@ export default function HomePage() {
       if (!dateA) return 1;
       if (!dateB) return -1;
 
-      // desc: yeni tarih önce gelsin
+      // desc: yeni tarih once gelsin
       return dateB - dateA;
     });
     setKayitlar(sorted);
-    // eslint-disable-next-line
   }, []);
-
-
-  // const sortData = (key) => {
-  //   let direction = "asc";
-
-  //   // Aynı key'e tıklandıkça asc/desc yönünü değiştiriyor
-  //   if (sortConfig.key === key && sortConfig.direction === "asc") {
-  //     direction = "desc";
-  //   } else if (sortConfig.key === key && sortConfig.direction === "desc") {
-  //     direction = "asc";
-  //   }
-
-  //   setSortConfig({ key, direction });
-
-  //   const sortedData = [...kayitlar].sort((a, b) => {
-  //     if (!a[key]) return 1;
-  //     if (!b[key]) return -1;
-
-  //     // Eğer TeslimAlmaTarihi ise özel tarih sıralaması yap
-  //     if (key === "TeslimAlmaTarihi") {
-  //       const dateA = parseDateString(a[key]);
-  //       const dateB = parseDateString(b[key]);
-
-  //       // Parse edilemezse en sona atsın
-  //       if (!dateA) return 1;
-  //       if (!dateB) return -1;
-
-  //       // direction === 'asc' => küçük tarihten büyüğe
-  //       // direction === 'desc' => büyük tarihten küçüğe
-  //       return direction === "asc" ? dateA - dateB : dateB - dateA;
-  //     }
-
-  //     // Diğer alanlar için mevcut string/number kıyaslama
-  //     if (typeof a[key] === "string" && typeof b[key] === "string") {
-  //       return direction === "asc"
-  //         ? a[key].localeCompare(b[key])
-  //         : b[key].localeCompare(a[key]);
-  //     }
-
-  //     return direction === "asc" ? a[key] - b[key] : b[key] - a[key];
-  //   });
-
-  //   setKayitlar(sortedData);
-  // };
 
   const sortData = (key) => {
     let direction = "asc";
 
-    // Eğer yeni bir sütuna tıklanmışsa, sıralamayı sıfırla ve "asc" ile başlat
+    // sutuna tiklanmissa, siralamayi sifirla ve "asc" ile baslat
     if (sortConfig.key !== key) {
       direction = "asc";
     } else {
-      // Eğer aynı sütuna tıklanıyorsa yönü değiştir
       direction = sortConfig.direction === "asc" ? "desc" : "asc";
     }
 
     setSortConfig({ key, direction });
 
-    // Orijinal kayıtları koruyarak yeni bir sıralama yap
     const sortedData = [...kayitlar].sort((a, b) => {
       if (!a[key]) return 1;
       if (!b[key]) return -1;
 
-      // Eğer tarih sıralanıyorsa, önce parse işlemi yap
-      if (key === "TeslimAlmaTarihi" || key === "HazirlamaTarihi" || key === "TeslimEtmeTarihi") {
+      if (
+        key === "TeslimAlmaTarihi" ||
+        key === "HazirlamaTarihi" ||
+        key === "TeslimEtmeTarihi"
+      ) {
         const dateA = parseDateString(a[key]);
         const dateB = parseDateString(b[key]);
 
@@ -283,26 +208,23 @@ export default function HomePage() {
         return direction === "asc" ? dateA - dateB : dateB - dateA;
       }
 
-      // Eğer metin sıralanıyorsa (string karşılaştırma)
       if (typeof a[key] === "string" && typeof b[key] === "string") {
         return direction === "asc"
           ? a[key].localeCompare(b[key])
           : b[key].localeCompare(a[key]);
       }
 
-      // Sayı sıralaması
       return direction === "asc" ? a[key] - b[key] : b[key] - a[key];
     });
 
     setKayitlar(sortedData);
   };
 
-  const toggleToolsPanel = () => {
-    setIsToolsPanelOpen(!isToolsPanelOpen);
-  };
+  // const toggleToolsPanel = () => {
+  //   setIsToolsPanelOpen(!isToolsPanelOpen);
+  // };
 
   const exportAllRecordsToExcel = () => {
-    // Tüm verileri "Teslim Edildi" hariç aktar
     const filteredKayitlar = kayitlar.filter(
       (row) => row.Durum !== "Teslim Edildi"
     );
@@ -555,7 +477,7 @@ export default function HomePage() {
   const handleLogout = async () => {
     try {
       // Backend'e çıkış işlemi için istek gönder
-      const response = await fetch("http://192.168.0.201:2431/api/logout", {
+      const response = await fetch("http://192.168.0.140:2431/api/logout", {
         method: "POST",
         credentials: "include", // Çerezleri gönder
       });
@@ -585,189 +507,27 @@ export default function HomePage() {
 
   return (
     <>
-      <div
-        className="tools-panel-header"
-        onClick={toggleToolsPanel}
-        style={{
-          backgroundColor: "rgba(255, 0, 0, 0.5)",
-          color: "#fff",
-          padding: "15px",
-          borderRadius: "50%",
-          cursor: "pointer",
-          display: "inline-flex",
-          position: "absolute",
-          alignItems: "center",
-          justifyContent: "space-between",
-          zIndex: 999,
-          top: "10px",
-          right: "10px",
-        }}
-      >
-        {isToolsPanelOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-      </div>
-      {isToolsPanelOpen && (
-        <div className="row align-items-center mt-3 mb-3 ms-3">
-          <div
-            className="col-auto"
-            style={{ marginTop: "40px", width: "500px" }}
-          >
-            <input
-              type="text"
-              placeholder="Arama yapın..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="form-control mb-3 w-100"
-            />
-          </div>
-          <div className="col-auto">
-            <label className="fs-6 fw-light" htmlFor="Durum">
-              Durum
-            </label>
-            <select
-              className="form-control"
-              onChange={(e) => setFiltre(e.target.value)}
-              value={filtre}
-            >
-              <option value="Hepsi">Hepsi</option>
-              <option value="Onarılıyor">Onarılıyor</option>
-              <option value="Bekliyor">Bekliyor</option>
-              <option value="Hazırlanıyor">Hazırlanıyor</option>
-              <option value="Tamamlandı">Tamamlandı</option>
-            </select>
-          </div>
-          <div className="col-auto">
-            <label className="fs-6 fw-light" htmlFor="GarantiDurumu">
-              Garanti
-            </label>
-            <select
-              className="form-control"
-              onChange={(e) => setGarantiFiltre(e.target.value)}
-              value={garantiFiltre}
-            >
-              <option value="Hepsi">Hepsi</option>
-              <option value="Garantili">Garantili</option>
-              <option value="Garantisiz">Garantisiz</option>
-              <option value="Sözleşmeli">Sözleşmeli</option>
-              <option value="Belirsiz">Belirsiz</option>
-            </select>
-          </div>
-          <div className="col-auto">
-            <label className="fs-6 fw-light" htmlFor="Tarih">
-              Tarih
-            </label>
-            <input
-              type="date"
-              className="form-control"
-              value={filtreTarihi}
-              onChange={(e) => setFiltreTarihi(e.target.value)}
-            />
-          </div>
-          <div className="col-auto">
-            <div className="dropdown-center">
-              <button
-                className="btn btn-success dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                style={{ width: "100%", height: "50px" }}
-              >
-                Excel İşlemleri
-              </button>
-              <ul className="dropdown-menu">
-                <li>
-                  <a
-                    className="dropdown-item"
-                    onClick={exportAllRecordsToExcel}
-                  >
-                    Tüm Verileri Excele Aktar
-                  </a>
-                </li>
-                <li>
-                  <a
-                    className="dropdown-item"
-                    onClick={exportFilteredRecordsToExcel}
-                  >
-                    Filtreyi Excele Aktar
-                  </a>
-                </li>
-                <li>
-                  <a
-                    className="dropdown-item"
-                    onClick={exportSelectedRecordsToExcel}
-                  >
-                    Seçilmişi Excele Aktar
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="col-auto">
-            <a
-              href="/"
-              className="btn btn-success w-100 mb-2"
-              style={{ width: "100%", height: "50px" }}
-            >
-              <IoHome style={{ width: "30px", height: "30px" }} />
-            </a>
-          </div>
-          <div className="col-auto">
-            <a
-              href="/delivered-products"
-              className="btn btn-warning w-100 mb-2"
-              style={{ width: "100%", height: "50px" }}
-            >
-              <FaArchive style={{ width: "30px", height: "30px" }} />
-            </a>
-          </div>
-          {isAuthorized && userRole === "admin" && (
-            <>
-              <div className="col-auto">
-                <div className="dropdown-center">
-                  <button
-                    className="btn btn-info dropdown-toggle"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                    style={{ width: "100%", height: "50px" }}
-                  >
-                    Ekleme İşlemleri
-                  </button>
-                  <ul className="dropdown-menu">
-                    <li>
-                      <a className="dropdown-item" href="/add-product">
-                        Ürün Ekle
-                      </a>
-                    </li>
-                    <li>
-                      <a className="dropdown-item" href="/add-customer">
-                        Müşteri/Bayi Ekle
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="col-auto">
-                <a
-                  href="/settings"
-                  className="btn btn-warning w-100 mb-2"
-                  style={{ width: "100%", height: "50px" }}
-                >
-                  <IoSettingsSharp style={{ width: "30px", height: "30px" }} />
-                </a>
-              </div>
-            </>
-          )}
-          <div className="col-auto">
-            <button className="btn btn-danger rounded-1" onClick={handleLogout}>
-              <IoMdLogOut style={{ width: "30px", height: "30px" }} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* PANEL MENU */}
-
-      {/* <SidePanel /> */}
+      <ToolsPanel
+        isAuthorized={isAuthorized}
+        userRole={userRole}
+        handleLogout={handleLogout}
+        exportAllRecordsToExcel={exportAllRecordsToExcel}
+        exportFilteredRecordsToExcel={exportFilteredRecordsToExcel}
+        exportSelectedRecordsToExcel={exportSelectedRecordsToExcel}
+        setFiltre={setFiltre}
+        setGarantiFiltre={setGarantiFiltre}
+        setFiltreTarihi={setFiltreTarihi}
+        setSearchTerm={setSearchTerm}
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        filteredResults={filteredResults}
+        sortConfig={sortConfig}
+        sortData={sortData}
+        handleCheckboxChange={handleCheckboxChange}
+        formatTarihVeSaat={formatTarihVeSaat}
+        selectedRecords={selectedRecords}
+        setSelectedRecords={exportSelectedRecordsToExcel}
+      />
 
       <div className="table mt-1">
         {filteredResults.length > 0 ? (
@@ -777,43 +537,6 @@ export default function HomePage() {
             cellSpacing="0"
             className="w-100 table-striped"
           >
-            {/* <thead>
-              <tr style={{ backgroundColor: "#bdbdbd" }}>
-                <th onClick={() => sortData("fishNo")}>
-                  Fis No {sortConfig.key === "fishNo" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("AdSoyad")}>
-                  Ad Soyad {sortConfig.key === "AdSoyad" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("TeslimAlmaTarihi")}>
-                  Teslim Alma Tarihi {sortConfig.key === "TeslimAlmaTarihi" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("TelNo")}>
-                  TelNo {sortConfig.key === "TelNo" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("Urun")}>
-                  Ürün {sortConfig.key === "Urun" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("Marka")}>
-                  Marka {sortConfig.key === "Marka" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("Model")}>
-                  Model {sortConfig.key === "Model" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("SeriNo")}>
-                  Seri No {sortConfig.key === "SeriNo" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("GarantiDurumu")}>
-                  Garanti Durum {sortConfig.key === "GarantiDurumu" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("TeslimAlan")}>
-                  Teslim Alan {sortConfig.key === "TeslimAlan" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-                <th onClick={() => sortData("Durum")} className="rounded">
-                  Durum {sortConfig.key === "Durum" && (sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />)}
-                </th>
-              </tr>
-            </thead> */}
             <thead>
               <tr style={{ backgroundColor: "#bdbdbd" }}>
                 {[
@@ -835,9 +558,13 @@ export default function HomePage() {
                   { key: "Ucret", label: "Ücret" },
                   { key: "HazirlamaTarihi", label: "Hazırlama Tarihi" },
                   { key: "TeslimEtmeTarihi", label: "Teslim Etme Tarihi" },
-                  { key: "Durum", label: "Durum" }
+                  { key: "Durum", label: "Durum" },
                 ].map(({ key, label }) => (
-                  <th key={key} onClick={() => sortData(key)} style={{ cursor: "pointer" }}>
+                  <th
+                    key={key}
+                    onClick={() => sortData(key)}
+                    style={{ cursor: "pointer" }}
+                  >
                     {label}
                     {sortConfig.key === key &&
                       (sortConfig.direction === "asc" ? " ▲" : " ▼")}
@@ -951,81 +678,50 @@ export default function HomePage() {
                       {formatTarihVeSaat(recordS.TeslimEtmeTarihi) ||
                         "Daha Belirtilmedi"}
                     </td>
-                    {/* {isAuthorized && (
-                      <td>
-                        <button
-                          onClick={() => navigate(`/record/${recordS.fishNo}`)}
-                          className="btn btn-sm btn-secondary"
-                        >
-                          Düzenle
-                        </button>
-                      </td>
-                    )} */}
-                    <td
-                      id="gitdegistirya"
-                      className={
-                        recordS.Durum === "Onarılıyor"
-                          ? "onariliyor"
-                          : recordS.Durum === "Tamamlandı"
-                            ? "tamamlandi"
-                            : recordS.Durum === "Bekliyor"
-                              ? "bklyr"
-                              : recordS.Durum === "İade Edildi"
-                                ? "iade-edildi"
-                                : recordS.Durum === "Teslim Edildi"
-                                  ? "teslim-edildi"
-                                  : recordS.Durum === "Onay Bekliyor"
-                                    ? "onay-bekliyor"
-                                    : recordS.Durum === "Yedek Parça Bekliyor"
-                                      ? "yedek-parca"
-                                      : recordS.Durum === "Problemli Ürün"
-                                        ? "problemli-urun"
-                                        : recordS.Durum === "Teslim Alınmadı"
-                                          ? "teslim-alinmadi"
-                                          : recordS.Durum === "Hazırlanıyor"
-                                            ? "hazirlaniyor"
-                                            : recordS.Durum === "Arıza Tespiti"
-                                              ? "ariza-tespiti"
-                                              : recordS.Durum === "Değişim Tamamlandı"
-                                                ? "degisim-tamamlandi"
-                                                : recordS.Durum === "Faturalandı"
-                                                  ? "faturalandi"
-                                                  : recordS.Durum === "Garantili Onarım"
-                                                    ? "garantili-onarim"
-                                                    : recordS.Durum === "Teslim Durumu"
-                                                      ? "teslim-durumu"
-                                                      : recordS.Durum === "Hurdaya Ayrıldı"
-                                                        ? "hurdaya-ayrildi"
-                                                        : recordS.Durum === "İade Tamamlandı"
-                                                          ? "iade-tamamlandi"
-                                                          : recordS.Durum === "İade Toplanıyor"
-                                                            ? "iade-toplaniyor"
-                                                            : recordS.Durum === "Kiralama"
-                                                              ? "kiralama"
-                                                              : recordS.Durum === "Montaj Yapılacak"
-                                                                ? "montaj-yapilacak"
-                                                                : recordS.Durum === "Onarım Aşamasında"
-                                                                  ? "onarim-asamasinda"
-                                                                  : recordS.Durum === "Onay Durumu"
-                                                                    ? "onay-durumu"
-                                                                    : recordS.Durum === "Parça Durumu"
-                                                                      ? "parca-durumu"
-                                                                      : recordS.Durum === "Periyodik Bakım"
-                                                                        ? "periyodik-bakim"
-                                                                        : recordS.Durum === "Satın Alındı"
-                                                                          ? "satin-alindi"
-                                                                          : recordS.Durum === "Servis Durumu"
-                                                                            ? "servis-durumu"
-                                                                            : recordS.Durum === "Sipariş Durumu"
-                                                                              ? "siparis-durumu"
-                                                                              : recordS.Durum === "Tahsilat Bekliyor"
-                                                                                ? "tahsilat-bekliyor"
-                                                                                : recordS.Durum === "Ücret Bildirilecek"
-                                                                                  ? "ucret-bildirilecek"
-                                                                                  : ""
-                      }
-                    >
-                      {recordS.Durum}
+                    <td id="gitdegistirya">
+                      <span
+                        id="estetik"
+                        className={(() => {
+                          const statusClasses = {
+                            Onarılıyor: "onariliyor",
+                            Tamamlandı: "tamamlandi",
+                            Bekliyor: "bklyr",
+                            "İade Edildi": "iade-edildi",
+                            "Teslim Edildi": "teslim-edildi",
+                            "Onay Bekliyor": "onay-bekliyor",
+                            "Yedek Parça Bekliyor": "yedek-parca",
+                            "Problemli Ürün": "problemli-urun",
+                            "Teslim Alınmadı": "teslim-alinmadi",
+                            Hazırlanıyor: "hazirlaniyor",
+                            "Arıza Tespiti": "ariza-tespiti",
+                            "Değişim Tamamlandı": "degisim-tamamlandi",
+                            Faturalandı: "faturalandi",
+                            "Garantili Onarım": "garantili-onarim",
+                            "Teslim Durumu": "teslim-durumu",
+                            "Hurdaya Ayrıldı": "hurdaya-ayrildi",
+                            "İade Tamamlandı": "iade-tamamlandi",
+                            "İade Toplanıyor": "iade-toplaniyor",
+                            Kiralama: "kiralama",
+                            "Montaj Yapılacak": "montaj-yapilacak",
+                            "Onarım Aşamasında": "onarim-asamasinda",
+                            "Onay Durumu": "onay-durumu",
+                            "Parça Durumu": "parca-durumu",
+                            "Periyodik Bakım": "periyodik-bakim",
+                            "Satın Alındı": "satin-alindi",
+                            "Servis Durumu": "servis-durumu",
+                            "Sipariş Durumu": "siparis-durumu",
+                            "Tahsilat Bekliyor": "tahsilat-bekliyor",
+                            "Ücret Bildirilecek": "ucret-bildirilecek",
+                          };
+                          return statusClasses[recordS?.Durum] || ""; // recordS null olabilir, o yüzden optional chaining (?.) kullandım.
+                        })()}
+                      >
+                        {recordS?.Durum}
+                      </span>
+                    </td>
+
+                    <td id="gitdegistirya" className={statusClass}>
+                      <span id="estetik">{recordS.Durum}</span>
                     </td>
                   </tr>
                 ))}
@@ -1036,10 +732,10 @@ export default function HomePage() {
             border="1"
             cellPadding="5"
             cellSpacing="0"
-            className="w-100 table-striped"
+            className="table table-striped table-responsive"
           >
-            <thead>
-              <tr style={{ backgroundColor: "#bdbdbd" }}>
+            <thead className="thead-dark">
+              <tr>
                 {[
                   { key: "fishNo", label: "Fis No" },
                   { key: "AdSoyad", label: "Ad Soyad" },
@@ -1059,17 +755,20 @@ export default function HomePage() {
                   { key: "Ucret", label: "Ücret" },
                   { key: "HazirlamaTarihi", label: "Hazırlama Tarihi" },
                   { key: "TeslimEtmeTarihi", label: "Teslim Etme Tarihi" },
-                  { key: "Durum", label: "Durum" }
+                  { key: "Durum", label: "Durum" },
                 ].map(({ key, label }) => (
-                  <th key={key} onClick={() => sortData(key)} style={{ cursor: "pointer" }}>
-                    {label}
+                  <th
+                    key={key}
+                    onClick={() => sortData(key)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {label}{" "}
                     {sortConfig.key === key &&
                       (sortConfig.direction === "asc" ? " ▲" : " ▼")}
                   </th>
                 ))}
               </tr>
             </thead>
-
             <tbody>
               {filtrelenmisKayitlar.length > 0 ? (
                 filtrelenmisKayitlar
@@ -1078,23 +777,20 @@ export default function HomePage() {
                     <tr key={record.fishNo || `record-${index}`}>
                       <td>
                         <a
-                          className="btn btn-sm btn-secondary d-block mb-2 fs-3"
                           href={`/product-info/${record.fishNo || index}`}
                           target="_blank"
-                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-secondary"
                         >
-                          {record.fishNo}
+                          {record.fishNo}# | {idInListe++}
                         </a>
-                        <span className="glyphicon d-block mb-2">
-                          #{idInListe++}
-                        </span>
+                        <span className="glyphicon d-block mb-2"></span>
                         <input
                           type="checkbox"
                           name="selected-product"
                           id={`selected-product-${record.fishNo}`}
                           onChange={(e) => handleCheckboxChange(record, e)}
                           className="form-check-input custom-checkbox"
-                        style={{ width: "20px", height: "20px" }}
+                          style={{ width: "20px", height: "20px" }}
                         />
                       </td>
                       <td>{record.AdSoyad || "Bilinmiyor"}</td>
@@ -1111,18 +807,13 @@ export default function HomePage() {
                       <td>{record.TeslimAlan || "Bilinmiyor"}</td>
                       <td>{record.Teknisyen || "Bilinmiyor"}</td>
                       <td>
-                        {record.Sorunlar?.length > 100 ? (
+                        {record.Sorunlar?.length > 50 ? (
                           <>
                             <span className="text-break">
-                              {acikAciklama[index]
-                                ? record.Sorunlar
-                                : `${record.Sorunlar.slice(0, 50)}...`}
+                              {record.Sorunlar.slice(0, 50)}...
                             </span>
-                            <button
-                              onClick={() => toggleAciklama(index)}
-                              className="btn btn-sm btn-info mt-1"
-                            >
-                              {acikAciklama[index] ? "Daha Az" : "Daha Fazla"}
+                            <button className="btn btn-sm btn-info mt-1">
+                              Daha Fazla
                             </button>
                           </>
                         ) : (
@@ -1130,18 +821,13 @@ export default function HomePage() {
                         )}
                       </td>
                       <td>
-                        {record.Aciklama?.length > 100 ? (
+                        {record.Aciklama?.length > 50 ? (
                           <>
                             <span className="text-break">
-                              {acikAciklama[index]
-                                ? record.Aciklama
-                                : `${record.Aciklama.slice(0, 50)}...`}
+                              {record.Aciklama.slice(0, 50)}...
                             </span>
-                            <button
-                              onClick={() => toggleAciklama(index)}
-                              className="btn btn-sm btn-info mt-1"
-                            >
-                              {acikAciklama[index] ? "Daha Az" : "Daha Fazla"}
+                            <button className="btn btn-sm btn-info mt-1">
+                              Daha Fazla
                             </button>
                           </>
                         ) : (
@@ -1149,18 +835,13 @@ export default function HomePage() {
                         )}
                       </td>
                       <td>
-                        {record.Yapilanlar?.length > 100 ? (
+                        {record.Yapilanlar?.length > 50 ? (
                           <>
                             <span className="text-break">
-                              {acikAciklama[index]
-                                ? record.Yapilanlar
-                                : `${record.Yapilanlar.slice(0, 50)}...`}
+                              {record.Yapilanlar.slice(0, 50)}...
                             </span>
-                            <button
-                              onClick={() => toggleAciklama(index)}
-                              className="btn btn-sm btn-info mt-1"
-                            >
-                              {acikAciklama[index] ? "Daha Az" : "Daha Fazla"}
+                            <button className="btn btn-sm btn-info mt-1">
+                              Daha Fazla
                             </button>
                           </>
                         ) : (
@@ -1177,71 +858,46 @@ export default function HomePage() {
                         {formatTarihVeSaat(record.TeslimEtmeTarihi) ||
                           "Daha Belirtilmedi"}
                       </td>
-                      <td
-                        id="gitdegistirya"
-                        className={`durum-container ${record.Durum === "Onarılıyor"
-                          ? "onariliyor"
-                          : record.Durum === "Tamamlandı"
-                            ? "tamamlandi"
-                            : record.Durum === "Bekliyor"
-                              ? "bklyr"
-                              : record.Durum === "İade Edildi"
-                                ? "iade-edildi"
-                                : record.Durum === "Teslim Edildi"
-                                  ? "teslim-edildi"
-                                  : record.Durum === "Onay Bekliyor"
-                                    ? "onay-bekliyor"
-                                    : record.Durum === "Yedek Parça Bekliyor"
-                                      ? "yedek-parca"
-                                      : record.Durum === "Problemli Ürün"
-                                        ? "problemli-urun"
-                                        : record.Durum === "Teslim Alınmadı"
-                                          ? "teslim-alinmadi"
-                                          : record.Durum === "Hazırlanıyor"
-                                            ? "hazirlaniyor"
-                                            : record.Durum === "Arıza Tespiti"
-                                              ? "ariza-tespiti"
-                                              : record.Durum === "Değişim Tamamlandı"
-                                                ? "degisim-tamamlandi"
-                                                : record.Durum === "Faturalandı"
-                                                  ? "faturalandi"
-                                                  : record.Durum === "Garantili Onarım"
-                                                    ? "garantili-onarim"
-                                                    : record.Durum === "Teslim Durumu"
-                                                      ? "teslim-durumu"
-                                                      : record.Durum === "Hurdaya Ayrıldı"
-                                                        ? "hurdaya-ayrildi"
-                                                        : record.Durum === "İade Tamamlandı"
-                                                          ? "iade-tamamlandi"
-                                                          : record.Durum === "İade Toplanıyor"
-                                                            ? "iade-toplaniyor"
-                                                            : record.Durum === "Kiralama"
-                                                              ? "kiralama"
-                                                              : record.Durum === "Montaj Yapılacak"
-                                                                ? "montaj-yapilacak"
-                                                                : record.Durum === "Onarım Aşamasında"
-                                                                  ? "onarim-asamasinda"
-                                                                  : record.Durum === "Onay Durumu"
-                                                                    ? "onay-durumu"
-                                                                    : record.Durum === "Parça Durumu"
-                                                                      ? "parca-durumu"
-                                                                      : record.Durum === "Periyodik Bakım"
-                                                                        ? "periyodik-bakim"
-                                                                        : record.Durum === "Satın Alındı"
-                                                                          ? "satin-alindi"
-                                                                          : record.Durum === "Servis Durumu"
-                                                                            ? "servis-durumu"
-                                                                            : record.Durum === "Sipariş Durumu"
-                                                                              ? "siparis-durumu"
-                                                                              : record.Durum === "Tahsilat Bekliyor"
-                                                                                ? "tahsilat-bekliyor"
-                                                                                : record.Durum === "Ücret Bildirilecek"
-                                                                                  ? "ucret-bildirilecek"
-                                                                                  : "default"
-                          }`}
-                      >
-                        {record.Durum}
-                        {(isAuthorized && userRole === "admin") ? (
+                      <td id="gitdegistirya" className="durum-container">
+                        <span
+                          className={(() => {
+                            const statusClasses = {
+                              Onarılıyor: "onariliyor",
+                              Tamamlandı: "tamamlandi",
+                              Bekliyor: "bklyr",
+                              "İade Edildi": "iade-edildi",
+                              "Teslim Edildi": "teslim-edildi",
+                              "Onay Bekliyor": "onay-bekliyor",
+                              "Yedek Parça Bekliyor": "yedek-parca",
+                              "Problemli Ürün": "problemli-urun",
+                              "Teslim Alınmadı": "teslim-alinmadi",
+                              Hazırlanıyor: "hazirlaniyor",
+                              "Arıza Tespiti": "ariza-tespiti",
+                              "Değişim Tamamlandı": "degisim-tamamlandi",
+                              Faturalandı: "faturalandi",
+                              "Garantili Onarım": "garantili-onarim",
+                              "Teslim Durumu": "teslim-durumu",
+                              "Hurdaya Ayrıldı": "hurdaya-ayrildi",
+                              "İade Tamamlandı": "iade-tamamlandi",
+                              "İade Toplanıyor": "iade-toplaniyor",
+                              Kiralama: "kiralama",
+                              "Montaj Yapılacak": "montaj-yapilacak",
+                              "Onarım Aşamasında": "onarim-asamasinda",
+                              "Onay Durumu": "onay-durumu",
+                              "Parça Durumu": "parca-durumu",
+                              "Periyodik Bakım": "periyodik-bakim",
+                              "Satın Alındı": "satin-alindi",
+                              "Servis Durumu": "servis-durumu",
+                              "Sipariş Durumu": "siparis-durumu",
+                              "Tahsilat Bekliyor": "tahsilat-bekliyor",
+                              "Ücret Bildirilecek": "ucret-bildirilecek",
+                            };
+                            return statusClasses[record?.Durum] || "";
+                          })()}
+                        >
+                          {record?.Durum}
+                        </span>
+                        {isAuthorized && userRole === "admin" ? (
                           <button
                             onClick={() => navigate(`/record/${record.fishNo}`)}
                             className="duzenle-btn"
@@ -1254,11 +910,294 @@ export default function HomePage() {
                   ))
               ) : (
                 <tr className="bg-danger text-danger">
-                  <td colSpan="19">Filtreye uygun kayıt bulunamadı.</td>
+                  <td colSpan="16">Filtreye uygun kayıt bulunamadı.</td>
                 </tr>
               )}
             </tbody>
           </table>
+
+          // <table
+          //   border="1"
+          //   cellPadding="5"
+          //   cellSpacing="0"
+          //   className="w-100 table-striped"
+          // >
+          //   <thead>
+          //     <tr style={{ backgroundColor: "#bdbdbd" }}>
+          //       {[
+          //         { key: "fishNo", label: "Fis No" },
+          //         { key: "AdSoyad", label: "Ad Soyad" },
+          //         { key: "TeslimAlmaTarihi", label: "Teslim Alma Tarihi" },
+          //         { key: "TelNo", label: "TelNo" },
+          //         { key: "Urun", label: "Ürün" },
+          //         { key: "Marka", label: "Marka" },
+          //         { key: "Model", label: "Model" },
+          //         { key: "SeriNo", label: "Seri No" },
+          //         { key: "GarantiDurumu", label: "Garanti Durum" },
+          //         { key: "TeslimAlan", label: "Teslim Alan" },
+          //         { key: "Teknisyen", label: "Teknisyen" },
+          //         { key: "Sorunlar", label: "Sorun" },
+          //         { key: "Aciklama", label: "Açıklama" },
+          //         { key: "Yapilanlar", label: "Yapılanlar" },
+          //         { key: "Maliyet", label: "Maliyet" },
+          //         { key: "Ucret", label: "Ücret" },
+          //         { key: "HazirlamaTarihi", label: "Hazırlama Tarihi" },
+          //         { key: "TeslimEtmeTarihi", label: "Teslim Etme Tarihi" },
+          //         { key: "Durum", label: "Durum" },
+          //       ].map(({ key, label }) => (
+          //         <th
+          //           key={key}
+          //           onClick={() => sortData(key)}
+          //           style={{ cursor: "pointer" }}
+          //         >
+          //           {label}
+          //           {sortConfig.key === key &&
+          //             (sortConfig.direction === "asc" ? " ▲" : " ▼")}
+          //         </th>
+          //       ))}
+          //     </tr>
+          //   </thead>
+
+          //   <tbody>
+          //     {filtrelenmisKayitlar.length > 0 ? (
+          //       filtrelenmisKayitlar
+          //         .filter((record) => record.Durum !== "Teslim Edildi")
+          //         .map((record, index) => (
+          //           <tr key={record.fishNo || `record-${index}`}>
+          //             <td>
+          //               <a
+          //                 className="btn btn-sm btn-secondary d-block mb-2 fs-3"
+          //                 href={`/product-info/${record.fishNo || index}`}
+          //                 target="_blank"
+          //                 rel="noopener noreferrer"
+          //               >
+          //                 {record.fishNo}
+          //               </a>
+          //               <span className="glyphicon d-block mb-2">
+          //                 #{idInListe++}
+          //               </span>
+          //               <input
+          //                 type="checkbox"
+          //                 name="selected-product"
+          //                 id={`selected-product-${record.fishNo}`}
+          //                 onChange={(e) => handleCheckboxChange(record, e)}
+          //                 className="form-check-input custom-checkbox"
+          //                 style={{ width: "20px", height: "20px" }}
+          //               />
+          //             </td>
+          //             <td>{record.AdSoyad || "Bilinmiyor"}</td>
+          //             <td>
+          //               {formatTarihVeSaat(record.TeslimAlmaTarihi) ||
+          //                 "Bilinmiyor"}
+          //             </td>
+          //             <td>{record.TelNo || "Bilinmiyor"}</td>
+          //             <td>{record.Urun || "Bilinmiyor"}</td>
+          //             <td>{record.Marka || "Bilinmiyor"}</td>
+          //             <td>{record.Model || "Bilinmiyor"}</td>
+          //             <td>{record.SeriNo || "Bilinmiyor"}</td>
+          //             <td>{record.GarantiDurumu || "Bilinmiyor"}</td>
+          //             <td>{record.TeslimAlan || "Bilinmiyor"}</td>
+          //             <td>{record.Teknisyen || "Bilinmiyor"}</td>
+          //             <td>
+          //               {record.Sorunlar?.length > 100 ? (
+          //                 <>
+          //                   <span className="text-break">
+          //                     {acikAciklama[index]
+          //                       ? record.Sorunlar
+          //                       : `${record.Sorunlar.slice(0, 50)}...`}
+          //                   </span>
+          //                   <button
+          //                     onClick={() => toggleAciklama(index)}
+          //                     className="btn btn-sm btn-info mt-1"
+          //                   >
+          //                     {acikAciklama[index] ? "Daha Az" : "Daha Fazla"}
+          //                   </button>
+          //                 </>
+          //               ) : (
+          //                 <span>{record.Sorunlar || ""}</span>
+          //               )}
+          //             </td>
+          //             <td>
+          //               {record.Aciklama?.length > 100 ? (
+          //                 <>
+          //                   <span className="text-break">
+          //                     {acikAciklama[index]
+          //                       ? record.Aciklama
+          //                       : `${record.Aciklama.slice(0, 50)}...`}
+          //                   </span>
+          //                   <button
+          //                     onClick={() => toggleAciklama(index)}
+          //                     className="btn btn-sm btn-info mt-1"
+          //                   >
+          //                     {acikAciklama[index] ? "Daha Az" : "Daha Fazla"}
+          //                   </button>
+          //                 </>
+          //               ) : (
+          //                 <span>{record.Aciklama || ""}</span>
+          //               )}
+          //             </td>
+          //             <td>
+          //               {record.Yapilanlar?.length > 100 ? (
+          //                 <>
+          //                   <span className="text-break">
+          //                     {acikAciklama[index]
+          //                       ? record.Yapilanlar
+          //                       : `${record.Yapilanlar.slice(0, 50)}...`}
+          //                   </span>
+          //                   <button
+          //                     onClick={() => toggleAciklama(index)}
+          //                     className="btn btn-sm btn-info mt-1"
+          //                   >
+          //                     {acikAciklama[index] ? "Daha Az" : "Daha Fazla"}
+          //                   </button>
+          //                 </>
+          //               ) : (
+          //                 <span>{record.Yapilanlar || ""}</span>
+          //               )}
+          //             </td>
+          //             <td>MALIYET</td>
+          //             <td>{record.Ucret || "0"}₺</td>
+          //             <td>
+          //               {formatTarihVeSaat(record.HazirlamaTarihi) ||
+          //                 "Daha Belirtilmedi"}
+          //             </td>
+          //             <td>
+          //               {formatTarihVeSaat(record.TeslimEtmeTarihi) ||
+          //                 "Daha Belirtilmedi"}
+          //             </td>
+          //             {/* <td
+          //               id="gitdegistirya"
+          //               className={`durum-container ${
+          //                 record.Durum === "Onarılıyor"
+          //                   ? "onariliyor"
+          //                   : record.Durum === "Tamamlandı"
+          //                   ? "tamamlandi"
+          //                   : record.Durum === "Bekliyor"
+          //                   ? "bklyr"
+          //                   : record.Durum === "İade Edildi"
+          //                   ? "iade-edildi"
+          //                   : record.Durum === "Teslim Edildi"
+          //                   ? "teslim-edildi"
+          //                   : record.Durum === "Onay Bekliyor"
+          //                   ? "onay-bekliyor"
+          //                   : record.Durum === "Yedek Parça Bekliyor"
+          //                   ? "yedek-parca"
+          //                   : record.Durum === "Problemli Ürün"
+          //                   ? "problemli-urun"
+          //                   : record.Durum === "Teslim Alınmadı"
+          //                   ? "teslim-alinmadi"
+          //                   : record.Durum === "Hazırlanıyor"
+          //                   ? "hazirlaniyor"
+          //                   : record.Durum === "Arıza Tespiti"
+          //                   ? "ariza-tespiti"
+          //                   : record.Durum === "Değişim Tamamlandı"
+          //                   ? "degisim-tamamlandi"
+          //                   : record.Durum === "Faturalandı"
+          //                   ? "faturalandi"
+          //                   : record.Durum === "Garantili Onarım"
+          //                   ? "garantili-onarim"
+          //                   : record.Durum === "Teslim Durumu"
+          //                   ? "teslim-durumu"
+          //                   : record.Durum === "Hurdaya Ayrıldı"
+          //                   ? "hurdaya-ayrildi"
+          //                   : record.Durum === "İade Tamamlandı"
+          //                   ? "iade-tamamlandi"
+          //                   : record.Durum === "İade Toplanıyor"
+          //                   ? "iade-toplaniyor"
+          //                   : record.Durum === "Kiralama"
+          //                   ? "kiralama"
+          //                   : record.Durum === "Montaj Yapılacak"
+          //                   ? "montaj-yapilacak"
+          //                   : record.Durum === "Onarım Aşamasında"
+          //                   ? "onarim-asamasinda"
+          //                   : record.Durum === "Onay Durumu"
+          //                   ? "onay-durumu"
+          //                   : record.Durum === "Parça Durumu"
+          //                   ? "parca-durumu"
+          //                   : record.Durum === "Periyodik Bakım"
+          //                   ? "periyodik-bakim"
+          //                   : record.Durum === "Satın Alındı"
+          //                   ? "satin-alindi"
+          //                   : record.Durum === "Servis Durumu"
+          //                   ? "servis-durumu"
+          //                   : record.Durum === "Sipariş Durumu"
+          //                   ? "siparis-durumu"
+          //                   : record.Durum === "Tahsilat Bekliyor"
+          //                   ? "tahsilat-bekliyor"
+          //                   : record.Durum === "Ücret Bildirilecek"
+          //                   ? "ucret-bildirilecek"
+          //                   : "default"
+          //               }`}
+          //             >
+          //               {record.Durum}
+          //               {isAuthorized && userRole === "admin" ? (
+          //                 <button
+          //                   onClick={() => navigate(`/record/${record.fishNo}`)}
+          //                   className="duzenle-btn"
+          //                 >
+          //                   <MdEditSquare />
+          //                 </button>
+          //               ) : null}
+          //             </td> */}
+          //             <td id="gitdegistirya" className="durum-container">
+          //               <span
+          //                 className={(() => {
+          //                   const statusClasses = {
+          //                     Onarılıyor: "onariliyor",
+          //                     Tamamlandı: "tamamlandi",
+          //                     Bekliyor: "bklyr",
+          //                     "İade Edildi": "iade-edildi",
+          //                     "Teslim Edildi": "teslim-edildi",
+          //                     "Onay Bekliyor": "onay-bekliyor",
+          //                     "Yedek Parça Bekliyor": "yedek-parca",
+          //                     "Problemli Ürün": "problemli-urun",
+          //                     "Teslim Alınmadı": "teslim-alinmadi",
+          //                     Hazırlanıyor: "hazirlaniyor",
+          //                     "Arıza Tespiti": "ariza-tespiti",
+          //                     "Değişim Tamamlandı": "degisim-tamamlandi",
+          //                     Faturalandı: "faturalandi",
+          //                     "Garantili Onarım": "garantili-onarim",
+          //                     "Teslim Durumu": "teslim-durumu",
+          //                     "Hurdaya Ayrıldı": "hurdaya-ayrildi",
+          //                     "İade Tamamlandı": "iade-tamamlandi",
+          //                     "İade Toplanıyor": "iade-toplaniyor",
+          //                     Kiralama: "kiralama",
+          //                     "Montaj Yapılacak": "montaj-yapilacak",
+          //                     "Onarım Aşamasında": "onarim-asamasinda",
+          //                     "Onay Durumu": "onay-durumu",
+          //                     "Parça Durumu": "parca-durumu",
+          //                     "Periyodik Bakım": "periyodik-bakim",
+          //                     "Satın Alındı": "satin-alindi",
+          //                     "Servis Durumu": "servis-durumu",
+          //                     "Sipariş Durumu": "siparis-durumu",
+          //                     "Tahsilat Bekliyor": "tahsilat-bekliyor",
+          //                     "Ücret Bildirilecek": "ucret-bildirilecek",
+          //                   };
+          //                   return statusClasses[record?.Durum] || "";
+          //                 })()}
+          //               >
+          //                 {record?.Durum}
+          //               </span>
+          //               {isAuthorized && userRole === "admin" ? (
+          //                 <button
+          //                   onClick={() => navigate(`/record/${record.fishNo}`)}
+          //                   className="duzenle-btn mt-2"
+          //                 >
+          //                   <MdEditSquare
+          //                     style={{ fontSize: "20px", marginBottom: "10px" }}
+          //                   />
+          //                 </button>
+          //               ) : null}
+          //             </td>
+          //           </tr>
+          //         ))
+          //     ) : (
+          //       <tr className="bg-danger text-danger">
+          //         <td colSpan="19">Filtreye uygun kayıt bulunamadı.</td>
+          //       </tr>
+          //     )}
+          //   </tbody>
+          // </table>
         )}
       </div>
     </>

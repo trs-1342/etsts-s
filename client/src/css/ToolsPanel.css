@@ -1,0 +1,79 @@
+.tools-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.tools-panel-container {
+  background: white;
+  width: 80%;
+  max-width: 800px;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.tools-panel-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.close-icon {
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.tools-panel-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tools-panel-content input,
+.tools-panel-content select,
+.tools-panel-content button {
+  width: 90%;
+  margin: 8px 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.tools-panel-content button {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.tools-panel-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  cursor: pointer;
+  padding: 12px;
+  background-color: #f00;
+  border-radius: 50%;
+  color: #fff;
+  transition: background 0.3s;
+}
+
+.tools-panel-toggle:hover {
+  background-color: #d00;
+}
