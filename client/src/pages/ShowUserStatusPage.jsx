@@ -18,7 +18,7 @@ export default function ShowUserStatusPage() {
     const fetchPermissions = async () => {
       try {
         const response = await fetch(
-          `http://192.168.0.140:2431/api/get-user-pages/${user.username}`,
+          `http://192.168.0.201:2431/api/get-user-pages/${user.username}`,
           {
             credentials: "include",
           }
@@ -54,7 +54,7 @@ export default function ShowUserStatusPage() {
   const handleLogout = async () => {
     try {
       // Backend'e çıkış işlemi için istek gönder
-      const response = await fetch("http://192.168.0.140:2431/api/logout", {
+      const response = await fetch("http://192.168.0.201:2431/api/logout", {
         method: "POST",
         credentials: "include", // Çerezleri gönder
       });

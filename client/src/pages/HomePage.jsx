@@ -45,7 +45,7 @@ export default function HomePage() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.140:2431/api/checkAdmin",
+          "http://192.168.0.201:2431/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -70,7 +70,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        const response = await fetch("http://192.168.0.140:2431/api/records", {
+        const response = await fetch("http://192.168.0.201:2431/api/records", {
           credentials: "include",
         });
         if (!response.ok) throw new Error("Yetkisiz erişim!");
@@ -477,7 +477,7 @@ export default function HomePage() {
   const handleLogout = async () => {
     try {
       // Backend'e çıkış işlemi için istek gönder
-      const response = await fetch("http://192.168.0.140:2431/api/logout", {
+      const response = await fetch("http://192.168.0.201:2431/api/logout", {
         method: "POST",
         credentials: "include", // Çerezleri gönder
       });
