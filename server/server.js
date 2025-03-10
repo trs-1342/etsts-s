@@ -763,7 +763,7 @@ app.post("/api/add-user", async (req, res) => {
       }
 
       // İkinci query'yi burada tetikliyorsanız
-      const query2 = `INSERT INTO adminusers (username, password, email, role) VALUES (?, ?, ?, ?)`;
+      const query2 = `INSERT INTO adminUsers (username, password, email, role) VALUES (?, ?, ?, ?)`;
       db.query(
         query2,
         [username, hashedPassword, email, role],
@@ -827,16 +827,16 @@ app.put("/api/update-user/:id", async (req, res) => {
 
       // İkinci tabloyu güncelle
       const query2 = `
-        UPDATE adminusers 
+        UPDATE adminUsers 
         SET username = ?, email = ?, role = ?, password = COALESCE(?, password) 
         WHERE id = ?`;
       const params2 = [username, email, role, hashedPassword, userId];
 
       db.query(query2, params2, (err, results2) => {
         if (err) {
-          console.error("SQL Hatası (adminusers tablosu):", err.message);
+          console.error("SQL Hatası (adminUsers tablosu):", err.message);
           return res.status(500).json({
-            message: "Kullanıcı güncellenemedi (adminusers tablosu)!",
+            message: "Kullanıcı güncellenemedi (adminUsers tablosu)!",
           });
         }
 
@@ -875,9 +875,9 @@ app.delete("/api/delete-user/:id", async (req, res) => {
       });
     });
 
-    // İkinci sorgu: 'adminusers' tablosundan sil
+    // İkinci sorgu: 'adminUsers' tablosundan sil
     const deleteFromAdminUsers = new Promise((resolve, reject) => {
-      db.query("DELETE FROM adminusers WHERE id = ?", [id], (err, result) => {
+      db.query("DELETE FROM adminUsers WHERE id = ?", [id], (err, result) => {
         if (err) return reject(err);
         resolve(result);
       });

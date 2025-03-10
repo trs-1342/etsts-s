@@ -67,18 +67,18 @@ users.forEach((user) => {
       return;
     }
 
-    // `adminusers` tablosuna veri eklemek
+    // `adminUsers` tablosuna veri eklemek
     const sqlAdmin =
-      "INSERT INTO adminusers (username, password, email, role) VALUES (?, ?, ?, ?)";
+      "INSERT INTO adminUsers (username, password, email, role) VALUES (?, ?, ?, ?)";
     db.query(
       sqlAdmin,
       [user.username, hashedPassword, user.email, user.role],
       (err, result) => {
         if (err) {
-          console.error("Veri eklerken hata oluştu (adminusers):", err);
+          console.error("Veri eklerken hata oluştu (adminUsers):", err);
           return;
         }
-        console.log(`${user.username} adminusers tablosuna eklendi.`);
+        console.log(`${user.username} adminUsers tablosuna eklendi.`);
       }
     );
 
