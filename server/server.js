@@ -349,7 +349,7 @@ app.post("/print", async (req, res) => {
     writeStream.on("finish", () => {
       console.log(`✅ PDF başarıyla oluşturuldu: ${outputPath}`);
 
-      const printerName = "Xprinter XP-470B"; // printer
+      const printerName = "Canon_MF620C_Series"; // printer
 
       exec(`lp -d ${printerName} "${outputPath}"`, (error, stdout, stderr) => {
         if (error) {
