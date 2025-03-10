@@ -301,6 +301,11 @@ const formatDateForMySQL = (isoDate) => {
 //   return Buffer.from(str, "base64").toString("binary");
 // }
 
+app.use(
+  "/pdfs",
+  express.static(path.join(os.homedir(), "Desktop", "enigma-pdfs"))
+);
+
 app.post("/print", async (req, res) => {
   let { data, fishNo, AdSoyad } = req.body;
 

@@ -34,26 +34,6 @@ export default function ProductInfo() {
   const [selectedPrinter, setSelectedPrinter] = useState("");
   const [showPrintDialog, setShowPrintDialog] = useState(false);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const response = await fetch("http://192.168.0.201:2431/api/printers");
-  //       if (!response.ok) throw new Error("Yazıcı listesi alınamadı");
-
-  //       const data = await response.json();
-  //       if (!Array.isArray(data) || data.length === 0) {
-  //         console.warn("⚠️ Bağlı yazıcı bulunamadı");
-  //         setPrinters([]);
-  //       } else {
-  //         setPrinters(data);
-  //         setSelectedPrinter(data[0]);
-  //       }
-  //     } catch (error) {
-  //       console.error("Yazıcıları tarama hatası:", error);
-  //     }
-  //   })();
-  // }, []);
-
   useEffect(() => {
     const checkAuthorization = async () => {
       try {
@@ -185,10 +165,57 @@ export default function ProductInfo() {
   // Duruma göre sınıf seçimi
   const durumClass = statusClassMap[kayit.Durum] || statusClassMap["default"];
 
-  // if (!isAuthorized) {
-  //   navigate("/you-cant-see");
-  //   return null;
-  // }
+  // const handleRecord = async () => {
+  //   if (!kayit) {
+  //     alert("Yazdırılacak kayıt bulunamadı.");
+  //     return;
+  //   }
+
+  //   const printData = `
+  //     Fiş No: ${kayit.fishNo}
+  //     Tarihi: ${formatDate(kayit.TeslimAlmaTarihi)}
+  //     Ad Soyad: ${kayit.AdSoyad}
+  //     Teslim Alma Tarihi: ${formatDate(kayit.TeslimAlmaTarihi)}
+  //     Telefon: ${kayit.TelNo}
+  //     Ürün: ${kayit.Urun}
+  //     Marka: ${kayit.Marka}
+  //     Model: ${kayit.Model}
+  //     Seri No: ${kayit.SeriNo}
+  //     Garanti Durumu: ${kayit.GarantiDurumu}
+  //     Sorunlar: ${kayit.Sorunlar}
+  //     Açıklama ${kayit.Aciklama || ""}
+  //     \n
+  //     - 30 gün içerisinde alınmayan ürünlerden ve kişisel bilgilerin güvenliğinden firmamız sorumlu değildir.
+  //     - Yapılan onarımların garanti süresi 3 aydır.
+  //     - Yapılan çalışmalar sonucunda arızanızın tespit edilmesine rağmen ürününüzün servisimizde onarmayı tercih etmemeniz halinde 500 tl arıza tespit parası ödenir.
+  //   `;
+
+  //   // Türkçe karakterleri korumak için Base64 kodlaması kullanıyoruz
+  //   const encodedData = btoa(unescape(encodeURIComponent(printData)));
+
+  //   try {
+  //     const response = await fetch("http://192.168.0.201:2431/print", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         data: encodedData, // Base64 olarak gönderiliyor
+  //         fishNo: kayit.fishNo,
+  //         AdSoyad: kayit.AdSoyad,
+  //       }),
+  //     });
+
+  //     if (response.ok) {
+  //       alert(
+  //         "Baskı başarılı, PDF Dosyası Desktop/enigma-pdfs/ yolunda oluşturuldu."
+  //       );
+  //     } else {
+  //       alert("Baskı sırasında hata oluştu.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Baskı hatası:", error);
+  //     alert("Yazıcıya bağlanırken hata oluştu.");
+  //   }
+  // };
 
   const handleRecord = async () => {
     if (!kayit) {
@@ -208,11 +235,11 @@ export default function ProductInfo() {
       Seri No: ${kayit.SeriNo}
       Garanti Durumu: ${kayit.GarantiDurumu}
       Sorunlar: ${kayit.Sorunlar}
-      Açıklama ${kayit.Aciklama || ""}
-      \n
+      Açıklama: ${kayit.Aciklama || ""}
+      
       - 30 gün içerisinde alınmayan ürünlerden ve kişisel bilgilerin güvenliğinden firmamız sorumlu değildir.
       - Yapılan onarımların garanti süresi 3 aydır.
-      - Yapılan çalışmalar sonucunda arızanızın tespit edilmesine rağmen ürününüzün servisimizde onarmayı tercih etmemeniz halinde 500 tl arıza tespit parası ödenir.
+      - Yapılan çalışmalar sonucunda arızanızın tespit edilmesine rağmen ürününüzün servisimizde onarmayı tercih etmemeniz halinde 500 TL arıza tespit ücreti ödenir.
     `;
 
     // Türkçe karakterleri korumak için Base64 kodlaması kullanıyoruz
@@ -223,46 +250,54 @@ export default function ProductInfo() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          data: encodedData, // Base64 olarak gönderiliyor
+          data: encodedData,
           fishNo: kayit.fishNo,
           AdSoyad: kayit.AdSoyad,
         }),
       });
 
-      if (response.ok) {
-        alert(
-          "Baskı başarılı, PDF Dosyası Desktop/enigma-pdfs/ yolunda oluşturuldu."
-        );
+      const result = await response.json();
+      if (result.pdfUrl) {
+        // Kullanıcının işletim sistemini algıla
+        const isWindows = navigator.userAgent.includes("Windows");
+        const isMac = navigator.userAgent.includes("Mac");
+        const isLinux = navigator.userAgent.includes("Linux");
+
+        if (isWindows) {
+          // Windows'ta yazdırma komutu
+          const printWindow = window.open(result.pdfUrl, "_blank");
+          if (printWindow) {
+            printWindow.onload = function () {
+              printWindow.print();
+            };
+          } else {
+            alert(
+              "Pop-up engellendi! Lütfen tarayıcı ayarlarından izin verin."
+            );
+          }
+        } else if (isMac || isLinux) {
+          // Mac veya Linux'ta yazdırma komutu
+          const printWindow = window.open(result.pdfUrl, "_blank");
+          if (printWindow) {
+            printWindow.onload = function () {
+              printWindow.print();
+            };
+          } else {
+            alert(
+              "Pop-up engellendi! Lütfen tarayıcı ayarlarından izin verin."
+            );
+          }
+        } else {
+          alert("İşletim sistemi algılanamadı, lütfen manuel olarak yazdırın.");
+        }
       } else {
-        alert("Baskı sırasında hata oluştu.");
+        alert("PDF oluşturma başarısız oldu.");
       }
     } catch (error) {
       console.error("Baskı hatası:", error);
-      alert("Yazıcıya bağlanırken hata oluştu.");
+      alert("PDF oluşturulurken hata oluştu.");
     }
   };
-
-  // const handleShowPrintDialog = () => setShowPrintDialog(true);
-
-  // const handlePrint = async () => {
-  //   if (!selectedPrinter) return alert("Lütfen bir yazıcı seçin");
-  //   try {
-  //     const response = await fetch("http://192.168.0.201:2431/api/print", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         printerName: selectedPrinter,
-  //         data: btoa(unescape(encodeURIComponent(JSON.stringify(kayit)))),
-  //         fishNo: kayit.fishNo,
-  //         AdSoyad: kayit.AdSoyad,
-  //       }),
-  //     });
-  //     alert(response.ok ? "Baskı başarılı" : "Baskı sırasında hata oluştu");
-  //   } catch (error) {
-  //     console.error("Baskı hatası:", error);
-  //     alert("Yazıcıya bağlanırken hata oluştu");
-  //   }
-  // };
 
   return (
     <div className="container mt-4">
@@ -345,9 +380,6 @@ export default function ProductInfo() {
 
       {isAuthorized && userRole === "admin" ? (
         <div className="text-center">
-          {/* <button className="btn btn-primary" onClick={() => handleRecord()}>
-            Fiş ve PDF Oluştur
-          </button> */}
           <button
             className="btn btn-warning mx-2"
             onClick={() => navigate(`/record/${kayit.fishNo}`)}
@@ -386,31 +418,6 @@ export default function ProductInfo() {
           <button className="btn btn-primary" onClick={handleRecord}>
             Fiş ve PDF Oluştur
           </button>
-          {/* {showPrintDialog && (
-            <div className="card p-3 mt-3">
-              <h3>Bağlı Yazıcılar</h3>
-              {printers.length > 0 ? (
-                printers.map((printer, index) => (
-                  <div key={index} className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="printer"
-                      value={printer}
-                      checked={selectedPrinter === printer}
-                      onChange={() => setSelectedPrinter(printer)}
-                    />
-                    <label className="form-check-label">{printer}</label>
-                  </div>
-                ))
-              ) : (
-                <p className="text-danger">⚠️ Bağlı yazıcı bulunamadı</p>
-              )}
-              <button className="btn btn-success mt-3" onClick={handlePrint} disabled={printers.length === 0}>
-                Yazdır
-              </button>
-            </div>
-          )} */}
         </div>
       ) : null}
     </div>
