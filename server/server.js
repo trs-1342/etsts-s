@@ -472,7 +472,7 @@ app.post("/api/login", async (req, res) => {
     }
 
     const tableStatusQuery =
-      "SELECT * FROM etstsr.tablestatus WHERE username = ?";
+      "SELECT * FROM ETSTSR.tablestatus WHERE username = ?";
     const tableStatusResults = await dbQuery(tableStatusQuery, [username]);
 
     return res.status(200).json({
@@ -502,7 +502,7 @@ app.get("/api/check-product-access/:fishNo", (req, res) => {
       .json({ isAuthorized: false, message: "Oturum açılmamış." });
   }
 
-  const query = `SELECT * FROM etstsr.tablestatus WHERE username = ? AND ProductInfoPage = 1`;
+  const query = `SELECT * FROM ETSTSR.tablestatus WHERE username = ? AND ProductInfoPage = 1`;
   db.query(query, [username], (err, results) => {
     if (err) {
       console.error("Veritabanı hatası:", err);
@@ -554,7 +554,7 @@ app.post("/api/check-page-access", (req, res) => {
     }
 
     // Admin değilse, yetkiyi kontrol et
-    const query = `SELECT ?? FROM etstsr.tablestatus WHERE username = ?`;
+    const query = `SELECT ?? FROM ETSTSR.tablestatus WHERE username = ?`;
 
     db.query(query, [page, username], (err, results) => {
       if (err) {
@@ -604,7 +604,7 @@ app.get("/api/get-user-pages/:username", (req, res) => {
     }
 
     // Eğer kullanıcı admin değilse, yetkili olduğu sayfaları çek
-    const query = `SELECT * FROM etstsr.tablestatus WHERE username = ? LIMIT 1`;
+    const query = `SELECT * FROM ETSTSR.tablestatus WHERE username = ? LIMIT 1`;
 
     db.query(query, [username], (err, results) => {
       if (err) {
@@ -633,7 +633,7 @@ app.get("/api/get-user-permissions/:username", (req, res) => {
   }
   const { username } = req.params;
 
-  const query = "SELECT * FROM etstsr.tablestatus WHERE username = ?";
+  const query = "SELECT * FROM ETSTSR.tablestatus WHERE username = ?";
   db.query(query, [username], (err, results) => {
     if (err) {
       console.error("Yetki bilgisi getirme hatası:", err.message);
@@ -674,7 +674,7 @@ app.get("/api/get-user-records/:username", (req, res) => {
   const { username } = req.params;
 
   // Kullanıcının görebileceği sütunları getir
-  const statusQuery = "SELECT * FROM etstsr.tablestatus WHERE username = ?";
+  const statusQuery = "SELECT * FROM ETSTSR.tablestatus WHERE username = ?";
   db.query(statusQuery, [username], (err, statusResults) => {
     if (err) {
       console.error("Yetki kontrolü sırasında hata:", err.message);
@@ -1033,7 +1033,7 @@ app.post("/api/change-user-settings", (req, res) => {
   const columnsValues = Object.values(permissions);
 
   // Kullanıcı var mı kontrol et
-  const checkQuery = `SELECT COUNT(*) AS count FROM etstsr.tablestatus WHERE username = ?`;
+  const checkQuery = `SELECT COUNT(*) AS count FROM ETSTSR.tablestatus WHERE username = ?`;
 
   db.query(checkQuery, [username], (err, result) => {
     if (err) {
@@ -1046,7 +1046,7 @@ app.post("/api/change-user-settings", (req, res) => {
     if (userExists) {
       // Kullanıcı varsa UPDATE yap
       const updateQuery = `
-        UPDATE etstsr.tablestatus 
+        UPDATE ETSTSR.tablestatus 
         SET ${columnsNames.map((col) => `${col} = ?`).join(", ")}
         WHERE username = ?
       `;
@@ -1067,7 +1067,7 @@ app.post("/api/change-user-settings", (req, res) => {
     } else {
       // Kullanıcı yoksa INSERT yap
       const insertQuery = `
-        INSERT INTO etstsr.tablestatus (username, ${columnsNames.join(", ")})
+        INSERT INTO ETSTSR.tablestatus (username, ${columnsNames.join(", ")})
         VALUES (?, ${columnsNames.map(() => "?").join(", ")})
       `;
 
@@ -1456,7 +1456,7 @@ app.post("/api/addpro", (req, res) => {
   }
 
   const insertRecordQuery = `
-    INSERT INTO etstsr.records 
+    INSERT INTO ETSTSR.records 
     (AdSoyad, TeslimAlmaTarihi, TelNo, TeslimAlan, Teknisyen, SeriNo, Urun, Marka, Model, GarantiDurumu, BirlikteAlinanlar, Sorunlar, Aciklama, Ucret, HazirlamaTarihi, TeslimEtmeTarihi, Durum)
     VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, 'Bekliyor');
   `;
@@ -1487,7 +1487,7 @@ app.post("/api/addpro", (req, res) => {
 
       // **Eklendikten sonra ilgili fishNo değerini al**
       db.query(
-        "SELECT fishNo FROM etstsr.records WHERE AdSoyad = ? ORDER BY fishNo DESC LIMIT 1;",
+        "SELECT fishNo FROM ETSTSR.records WHERE AdSoyad = ? ORDER BY fishNo DESC LIMIT 1;",
         [AdSoyad],
         (err, rows) => {
           if (err) {
@@ -1508,7 +1508,7 @@ app.post("/api/addpro", (req, res) => {
 
           // **costumerData'ya ekle**
           const costumerQuery = `
-            INSERT INTO etstsr.costumerData (id, AdSoyad, fishNoID) 
+            INSERT INTO ETSTSR.costumerData (id, AdSoyad, fishNoID) 
             VALUES (?, ?, ?)
             ON DUPLICATE KEY UPDATE fishNoID = VALUES(fishNoID);
           `;
