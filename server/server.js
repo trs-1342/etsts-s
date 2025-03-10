@@ -209,6 +209,98 @@ const formatDateForMySQL = (isoDate) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
+// app.post("/print", async (req, res) => {
+//   let { data, fishNo, AdSoyad } = req.body;
+
+//   if (!data || !fishNo || !AdSoyad) {
+//     return res.status(400).json({ error: "Yazdırılacak veri eksik." });
+//   }
+
+//   try {
+//     // 📌 **Türkçe karakterleri Base64'ten çözme**
+//     data = Buffer.from(data, "base64").toString("utf-8");
+
+//     // 📌 **Masaüstü yolunu dinamik olarak al**
+//     const desktopPath = path.join(os.homedir(), "Desktop", "enigma-pdfs");
+
+//     // Eğer klasör yoksa oluştur
+//     if (!fs.existsSync(desktopPath)) {
+//       fs.mkdirSync(desktopPath, { recursive: true });
+//     }
+
+//     // 📌 **Dosya İsmini Formatla**
+//     const formattedDate = moment().format("YYYY-MM-DD_HH-mm-ss");
+//     const sanitizedAdSoyad = AdSoyad.replace(/\s+/g, "_"); // Boşlukları _ ile değiştir
+//     const outputPath = path.join(
+//       desktopPath,
+//       `${fishNo}_${sanitizedAdSoyad}-${formattedDate}.pdf`
+//     );
+
+//     // 📌 **PDF Belgesi Oluştur**
+//     const doc = new PDFDocument({
+//       size: [80 * 2.83, 200 * 2.83], // 80mm x 200mm termal etiket boyutu
+//       margins: { top: 5, left: 5, right: 5, bottom: 5 },
+//     });
+
+//     const writeStream = fs.createWriteStream(outputPath);
+//     doc.pipe(writeStream);
+
+//     // 📌 **Arka Planı Siyah Yap**
+//     // doc.rect(0, 0, doc.page.width, doc.page.height).fill("#000000");
+
+//     // 📌 **Yazı Rengini Beyaz Yap**
+//     // doc.fillColor("#FFFFFF");
+
+//     // 📌 **Türkçe karakterleri destekleyen yazı tipi kullan**
+//     doc.font("fonts/DejaVuSans.ttf"); // Türkçe karakter destekleyen font (server'a ekle)
+
+//     // 📌 **PDF Başlığı**
+//     doc.fontSize(14).text("KAYIT FİŞİ", { align: "center" });
+//     doc.moveDown(0.5);
+//     doc.text("-".repeat(20), { align: "center" });
+//     doc.moveDown(0.5);
+
+//     // 📌 **Metni Türkçe karakterlerle PDF'e yazdır**
+//     const lines = data.split("\n");
+//     lines.forEach((line) => {
+//       doc.fontSize(10).text(line, { align: "left" });
+//       doc.moveDown(0.3);
+//     });
+
+//     doc.end();
+
+//     writeStream.on("finish", async () => {
+//       console.log(`✅ PDF başarıyla oluşturuldu: ${outputPath}`);
+
+//       try {
+//         await printer.print(outputPath, {
+//           // printer: "Argox CP-2140 PPLB",
+//           printer: "Xprinter XP-470B",
+//           options: ["-o media=Custom.80x200mm"], // 80mm x 200mm termal etiket boyutu
+//         });
+
+//         console.log("✅ Yazdırma tamamlandı.");
+//         res.json({ message: "Baskı başarılı.", pdfPath: outputPath });
+//       } catch (printErr) {
+//         console.error("❌ Yazdırma hatası:", printErr);
+//         res.status(500).json({ error: "Yazdırma başarısız." });
+//       }
+//     });
+
+//     writeStream.on("error", (pdfErr) => {
+//       console.error("❌ PDF oluşturma hatası:", pdfErr);
+//       res.status(500).json({ error: "PDF oluşturma başarısız." });
+//     });
+//   } catch (error) {
+//     console.error("❌ Base64 çözme hatası:", error);
+//     res.status(500).json({ error: "Veri çözümleme hatası." });
+//   }
+// });
+
+// function atob(str) {
+//   return Buffer.from(str, "base64").toString("binary");
+// }
+
 app.post("/print", async (req, res) => {
   let { data, fishNo, AdSoyad } = req.body;
 
@@ -217,50 +309,35 @@ app.post("/print", async (req, res) => {
   }
 
   try {
-    // 📌 **Türkçe karakterleri Base64'ten çözme**
     data = Buffer.from(data, "base64").toString("utf-8");
 
-    // 📌 **Masaüstü yolunu dinamik olarak al**
     const desktopPath = path.join(os.homedir(), "Desktop", "enigma-pdfs");
 
-    // Eğer klasör yoksa oluştur
     if (!fs.existsSync(desktopPath)) {
       fs.mkdirSync(desktopPath, { recursive: true });
     }
 
-    // 📌 **Dosya İsmini Formatla**
     const formattedDate = moment().format("YYYY-MM-DD_HH-mm-ss");
-    const sanitizedAdSoyad = AdSoyad.replace(/\s+/g, "_"); // Boşlukları _ ile değiştir
+    const sanitizedAdSoyad = AdSoyad.replace(/\s+/g, "_");
     const outputPath = path.join(
       desktopPath,
       `${fishNo}_${sanitizedAdSoyad}-${formattedDate}.pdf`
     );
 
-    // 📌 **PDF Belgesi Oluştur**
     const doc = new PDFDocument({
-      size: [80 * 2.83, 200 * 2.83], // 80mm x 200mm termal etiket boyutu
+      size: [80 * 2.83, 200 * 2.83],
       margins: { top: 5, left: 5, right: 5, bottom: 5 },
     });
 
     const writeStream = fs.createWriteStream(outputPath);
     doc.pipe(writeStream);
 
-    // 📌 **Arka Planı Siyah Yap**
-    // doc.rect(0, 0, doc.page.width, doc.page.height).fill("#000000");
-
-    // 📌 **Yazı Rengini Beyaz Yap**
-    // doc.fillColor("#FFFFFF");
-
-    // 📌 **Türkçe karakterleri destekleyen yazı tipi kullan**
-    doc.font("fonts/DejaVuSans.ttf"); // Türkçe karakter destekleyen font (server'a ekle)
-
-    // 📌 **PDF Başlığı**
+    doc.font("fonts/DejaVuSans.ttf");
     doc.fontSize(14).text("KAYIT FİŞİ", { align: "center" });
     doc.moveDown(0.5);
     doc.text("-".repeat(20), { align: "center" });
     doc.moveDown(0.5);
 
-    // 📌 **Metni Türkçe karakterlerle PDF'e yazdır**
     const lines = data.split("\n");
     lines.forEach((line) => {
       doc.fontSize(10).text(line, { align: "left" });
@@ -269,22 +346,19 @@ app.post("/print", async (req, res) => {
 
     doc.end();
 
-    writeStream.on("finish", async () => {
+    writeStream.on("finish", () => {
       console.log(`✅ PDF başarıyla oluşturuldu: ${outputPath}`);
 
-      try {
-        await printer.print(outputPath, {
-          // printer: "Argox CP-2140 PPLB",
-          printer: "Xprinter XP-470B",
-          options: ["-o media=Custom.80x200mm"], // 80mm x 200mm termal etiket boyutu
-        });
+      const printerName = "Xprinter XP-470B"; // printer
 
-        console.log("✅ Yazdırma tamamlandı.");
+      exec(`lp -d ${printerName} "${outputPath}"`, (error, stdout, stderr) => {
+        if (error) {
+          console.error("❌ Yazdırma hatası:", error);
+          return res.status(500).json({ error: "Yazdırma başarısız." });
+        }
+        console.log("✅ Yazdırma tamamlandı:", stdout);
         res.json({ message: "Baskı başarılı.", pdfPath: outputPath });
-      } catch (printErr) {
-        console.error("❌ Yazdırma hatası:", printErr);
-        res.status(500).json({ error: "Yazdırma başarısız." });
-      }
+      });
     });
 
     writeStream.on("error", (pdfErr) => {
@@ -296,10 +370,6 @@ app.post("/print", async (req, res) => {
     res.status(500).json({ error: "Veri çözümleme hatası." });
   }
 });
-
-// function atob(str) {
-//   return Buffer.from(str, "base64").toString("binary");
-// }
 
 app.get("/api/checkAdmin", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al

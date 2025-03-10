@@ -1,4 +1,5 @@
 client/node_modules/
+client/yedek.txt
 server/node_modules/
 server/users.js
 server/fonts/
