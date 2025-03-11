@@ -14,10 +14,11 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const PDFDocument = require("pdfkit");
 const { getPrinters } = require("pdf-to-printer");
-const printer = require("pdf-to-printer");
+const printerForPdf = require("pdf-to-printer");
 const util = require("util");
 const moment = require("moment");
 const os = require("os");
+const printer = require("printer");
 // !
 const fs = require("fs");
 const router = express.Router();
@@ -61,7 +62,7 @@ app.use(
 
 app.use(
   cors({
-    origin: "http://192.168.0.201",
+    origin: ["http://192.168.0.201:1342", "http://192.168.0.201:2431"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -69,7 +70,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://192.168.0.201");
+  res.header("Access-Control-Allow-Origin", "http://192.168.0.201:1342"); // İstemci adresi
   res.header("Access-Control-Allow-Credentials", "true"); // Kimlik bilgilerini kabul et
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // İzin verilen HTTP yöntemleri
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // İzin verilen başlıklar
@@ -170,8 +171,8 @@ wss.on("connection", (ws, req) => {
 function authMiddleware(req, res, next) {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   if (!req.session || !req.session.user) {
@@ -306,81 +307,187 @@ app.use(
   express.static(path.join(os.homedir(), "Desktop", "enigma-pdfs"))
 );
 
-app.post("/print", async (req, res) => {
-  let { data, fishNo, AdSoyad } = req.body;
+// app.post("/api/print", async (req, res) => {
+//   let { data, fishNo, AdSoyad } = req.body;
 
-  if (!data || !fishNo || !AdSoyad) {
-    return res.status(400).json({ error: "Yazdırılacak veri eksik." });
-  }
+//   if (!data || !fishNo || !AdSoyad) {
+//     return res.status(400).json({ error: "Yazdırılacak veri eksik." });
+//   }
 
+//   try {
+//     data = Buffer.from(data, "base64").toString("utf-8");
+
+//     const desktopPath = path.join(os.homedir(), "Desktop", "enigma-pdfs");
+
+//     if (!fs.existsSync(desktopPath)) {
+//       fs.mkdirSync(desktopPath, { recursive: true });
+//     }
+
+//     const formattedDate = moment().format("YYYY-MM-DD_HH-mm-ss");
+//     const sanitizedAdSoyad = AdSoyad.replace(/\s+/g, "_");
+//     const outputPath = path.join(
+//       desktopPath,
+//       `${fishNo}_${sanitizedAdSoyad}-${formattedDate}.pdf`
+//     );
+
+//     const doc = new PDFDocument({
+//       size: [80 * 2.83, 200 * 2.83],
+//       margins: { top: 5, left: 5, right: 5, bottom: 5 },
+//     });
+
+//     const writeStream = fs.createWriteStream(outputPath);
+//     doc.pipe(writeStream);
+
+//     doc.font("fonts/DejaVuSans.ttf");
+//     doc.fontSize(14).text("KAYIT FİŞİ", { align: "center" });
+//     doc.moveDown(0.5);
+//     doc.text("-".repeat(20), { align: "center" });
+//     doc.moveDown(0.5);
+
+//     const lines = data.split("\n");
+//     lines.forEach((line) => {
+//       doc.fontSize(10).text(line, { align: "left" });
+//       doc.moveDown(0.3);
+//     });
+
+//     doc.end();
+
+//     writeStream.on("finish", () => {
+//       console.log(`✅ PDF başarıyla oluşturuldu: ${outputPath}`);
+
+//       const printerName = "Canon_MF620C_Series"; // printer
+
+//       exec(`lp -d ${printerName} "${outputPath}"`, (error, stdout, stderr) => {
+//         if (error) {
+//           console.error("❌ Yazdırma hatası:", error);
+//           return res.status(500).json({ error: "Yazdırma başarısız." });
+//         }
+//         console.log("✅ Yazdırma tamamlandı:", stdout);
+//         res.json({ message: "Baskı başarılı.", pdfPath: outputPath });
+//       });
+//     });
+
+//     writeStream.on("error", (pdfErr) => {
+//       console.error("❌ PDF oluşturma hatası:", pdfErr);
+//       res.status(500).json({ error: "PDF oluşturma başarısız." });
+//     });
+//   } catch (error) {
+//     console.error("❌ Base64 çözme hatası:", error);
+//     res.status(500).json({ error: "Veri çözümleme hatası." });
+//   }
+// });
+
+// app.get("/api/printers", (req, res) => {
+//   exec("lpstat -p", (error, stdout, stderr) => {
+//     if (error) {
+//       console.error("❌ lpstat -p çalıştırılamadı:", error);
+//       return res.status(500).json({ error: "lpstat -p çalıştırılamadı." });
+//     }
+//     if (stderr) {
+//       console.error("⚠️ CUPS çıktısı hata içeriyor:", stderr);
+//       return res.status(500).json({ error: "CUPS hatası: " + stderr });
+//     }
+//     if (!stdout || stdout.trim() === "") {
+//       console.error("❌ Yazıcı listesi boş geldi.");
+//       return res.status(500).json({ error: "Yazıcı bulunamadı." });
+//     }
+
+//     try {
+//       const printers = stdout
+//         .split("\n")
+//         .filter((line) => line.includes("printer"))
+//         .map((line) => line.split(" ")[1]);
+
+//       if (printers.length === 0) {
+//         console.error("❌ Hiç yazıcı bulunamadı.");
+//         return res.status(500).json({ error: "Hiç yazıcı bulunamadı." });
+//       }
+
+//       console.log("✅ Bulunan yazıcılar:", printers);
+//       res.json({ printers });
+//     } catch (parseError) {
+//       console.error("❌ Yazıcı listesi ayrıştırılırken hata:", parseError);
+//       res.status(500).json({ error: "Yazıcı listesi ayrıştırma hatası." });
+//     }
+//   });
+// });
+
+// 1) Yazıcıları listeler (İşletim sistemine göre)
+app.get("/api/printers", (req, res) => {
   try {
-    data = Buffer.from(data, "base64").toString("utf-8");
+    const allPrinters = printer.getPrinters(); // bir dizi obje döndürür
+    const printerNames = allPrinters.map((p) => p.name); // sadece adları çek
+    res.json({ printers: printerNames });
+  } catch (error) {
+    console.error("Yazıcıları alırken hata oluştu:", error);
+    return res.status(500).json({ error: "Yazıcılar alınamadı." });
+  }
+});
 
-    const desktopPath = path.join(os.homedir(), "Desktop", "enigma-pdfs");
+// 2) Tek endpoint ile hem PDF oluşturup hem de seçili yazıcıdan basacak
+//    (Bu endpoint'e POST ile data, fishNo, printerName gönderilmesi gerekir)
+app.post("/api/print-and-pdf", (req, res) => {
+  try {
+    const { data, fishNo, printerName } = req.body;
 
-    if (!fs.existsSync(desktopPath)) {
-      fs.mkdirSync(desktopPath, { recursive: true });
+    if (!data || !fishNo || !printerName) {
+      return res.status(400).json({ error: "Gerekli veri eksik." });
     }
 
-    const formattedDate = moment().format("YYYY-MM-DD_HH-mm-ss");
-    const sanitizedAdSoyad = AdSoyad.replace(/\s+/g, "_");
-    const outputPath = path.join(
-      desktopPath,
-      `${fishNo}_${sanitizedAdSoyad}-${formattedDate}.pdf`
-    );
+    // 2a) base64'ü çöz
+    const buffer = Buffer.from(data, "base64");
+    const decodedText = buffer.toString("utf-8");
 
-    const doc = new PDFDocument({
-      size: [80 * 2.83, 200 * 2.83],
-      margins: { top: 5, left: 5, right: 5, bottom: 5 },
-    });
+    // 2b) PDF oluştur
+    if (!fs.existsSync("./pdfs")) {
+      fs.mkdirSync("./pdfs");
+    }
+    const pdfPath = path.join(__dirname, "pdfs", `${fishNo}.pdf`);
 
-    const writeStream = fs.createWriteStream(outputPath);
+    const doc = new PDFDocument();
+    const writeStream = fs.createWriteStream(pdfPath);
     doc.pipe(writeStream);
-
-    doc.font("fonts/DejaVuSans.ttf");
-    doc.fontSize(14).text("KAYIT FİŞİ", { align: "center" });
-    doc.moveDown(0.5);
-    doc.text("-".repeat(20), { align: "center" });
-    doc.moveDown(0.5);
-
-    const lines = data.split("\n");
-    lines.forEach((line) => {
-      doc.fontSize(10).text(line, { align: "left" });
-      doc.moveDown(0.3);
-    });
-
+    doc.text(decodedText);
     doc.end();
 
+    // 2c) PDF oluşturma bittiğinde yazıcıya gönder
     writeStream.on("finish", () => {
-      console.log(`✅ PDF başarıyla oluşturuldu: ${outputPath}`);
-
-      const printerName = "Canon_MF620C_Series"; // printer
-
-      exec(`lp -d ${printerName} "${outputPath}"`, (error, stdout, stderr) => {
-        if (error) {
-          console.error("❌ Yazdırma hatası:", error);
-          return res.status(500).json({ error: "Yazdırma başarısız." });
-        }
-        console.log("✅ Yazdırma tamamlandı:", stdout);
-        res.json({ message: "Baskı başarılı.", pdfPath: outputPath });
+      printerForPdf.printFile({
+        filename: pdfPath,
+        printer: printerName,
+        success: function (jobID) {
+          console.log("PDF Baskısı gönderildi! JobID:", jobID);
+          return res.json({
+            message: "PDF oluşturuldu ve baskı gönderildi.",
+            pdfPath,
+          });
+        },
+        error: function (err) {
+          console.error("Baskı hatası:", err);
+          return res
+            .status(500)
+            .json({ error: "PDF yazıcıya gönderilirken bir hata oluştu." });
+        },
       });
     });
 
-    writeStream.on("error", (pdfErr) => {
-      console.error("❌ PDF oluşturma hatası:", pdfErr);
-      res.status(500).json({ error: "PDF oluşturma başarısız." });
+    writeStream.on("error", (err) => {
+      console.error("PDF kaydedilirken hata:", err);
+      return res
+        .status(500)
+        .json({ error: "PDF oluşturulurken bir hata oluştu." });
     });
   } catch (error) {
-    console.error("❌ Base64 çözme hatası:", error);
-    res.status(500).json({ error: "Veri çözümleme hatası." });
+    console.error("Sunucu tarafında hata oluştu:", error);
+    return res.status(500).json({ error: "Bilinmeyen bir hata oluştu." });
   }
 });
 
 app.get("/api/checkAdmin", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const username = req.session?.user?.username;
 
@@ -417,8 +524,8 @@ app.get("/api/checkAdmin", (req, res) => {
 app.post("/api/logout", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   req.session.destroy((err) => {
     if (err) {
@@ -433,8 +540,8 @@ app.post("/api/logout", (req, res) => {
 app.post("/api/login", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, password } = req.body;
 
@@ -495,8 +602,8 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/check-product-access/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { fishNo } = req.params;
   const username = req.session.user?.username;
@@ -527,8 +634,8 @@ app.get("/api/check-product-access/:fishNo", (req, res) => {
 app.post("/api/check-page-access", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, page } = req.body;
 
@@ -579,8 +686,8 @@ app.post("/api/check-page-access", (req, res) => {
 app.get("/api/get-user-pages/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username } = req.params;
 
@@ -633,8 +740,8 @@ app.get("/api/get-user-pages/:username", (req, res) => {
 app.get("/api/get-user-permissions/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username } = req.params;
 
@@ -660,8 +767,8 @@ app.get("/api/get-user-permissions/:username", (req, res) => {
 app.get("/api/get-session-user", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   if (req.session.user) {
     res.json({ username: req.session.user.username });
@@ -673,8 +780,8 @@ app.get("/api/get-session-user", (req, res) => {
 app.get("/api/get-user-records/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username } = req.params;
 
@@ -743,8 +850,8 @@ app.get("/api/get-user-records/:username", (req, res) => {
 app.post("/api/add-user", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, password, email, role } = req.body;
 
@@ -798,8 +905,8 @@ app.post("/api/add-user", async (req, res) => {
 app.put("/api/update-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const userId = req.params.id;
   const { username, email, role, password } = req.body;
@@ -866,8 +973,8 @@ app.put("/api/update-user/:id", async (req, res) => {
 app.delete("/api/delete-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { id } = req.params;
 
@@ -903,8 +1010,8 @@ app.delete("/api/delete-user/:id", async (req, res) => {
 app.get("/api/get-users-data", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const query = "SELECT id, username, email, role, created_at FROM users";
 
@@ -921,8 +1028,8 @@ app.get("/api/get-users-data", (req, res) => {
 app.get("/api/get-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const userId = req.params.id;
   const query =
@@ -945,8 +1052,8 @@ app.get("/api/get-user/:id", (req, res) => {
 app.post("/api/update-settings-for-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const userId = req.params.id;
   const { allowedColumns } = req.body;
@@ -976,8 +1083,8 @@ app.post("/api/update-settings-for-user/:id", (req, res) => {
 app.get("/api/get-user-settings/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const username = req.params.username; // URL'den gelen kullanıcı adı
   console.log(username);
@@ -1023,8 +1130,8 @@ app.get("/api/get-user-settings/:username", (req, res) => {
 app.post("/api/change-user-settings", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, permissions } = req.body;
 
@@ -1096,8 +1203,8 @@ app.post("/api/change-user-settings", (req, res) => {
 app.get("/api/delivered-products", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const query = "SELECT * FROM records WHERE Durum = 'Teslim Edildi'";
   db.query(query, (err, results) => {
@@ -1118,8 +1225,8 @@ app.get("/api/delivered-products", (req, res) => {
 app.get("/api/getInfoProd/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const fishNo = req.params.fishNo;
 
@@ -1141,8 +1248,8 @@ app.get("/api/getInfoProd/:fishNo", (req, res) => {
 app.get("/api/protected", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   const username = req.session.user?.username;
@@ -1189,8 +1296,8 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 app.get("/api/records", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { username, role } = req.user; // authMiddleware'den gelen kullanıcı bilgileri
 
@@ -1241,7 +1348,7 @@ app.get("/api/record/:fishNo", (req, res) => {
     }
 
     // ** eğer istek yetkili istemciden gelmiyorsa mesaj döndür **
-    if (clientIP !== "http://192.168.0.201") {
+    if (clientIP !== "http://192.168.0.201:1342") {
       return res
         .status(403)
         .json({ message: "Bu verilere erişim izniniz yok." });
@@ -1255,7 +1362,7 @@ app.get("/api/record/:fishNo", (req, res) => {
 app.get("/api/get-all-fishNos", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
+  if (clientIP !== "http://192.168.0.201:1342") {
     return res.status(403).json({ message: "Bu verilere erişim izniniz yok." });
   }
 
@@ -1275,7 +1382,7 @@ app.get("/api/get-all-fishNos", (req, res) => {
 app.put("/api/record/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // İstemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
+  if (clientIP !== "http://192.168.0.201:1342") {
     return res.status(403).json({ message: "Bu verilere erişim izniniz yok." });
   }
   const { fishNo } = req.params;
@@ -1354,8 +1461,8 @@ app.put("/api/record/:fishNo", (req, res) => {
 app.get("/api/export-records", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const query = `
     SELECT fishNo, AdSoyad, DATE_FORMAT(TeslimAlmaTarihi, '%Y-%m-%d %H:%i:%s') AS TeslimAlmaTarihi, 
@@ -1380,8 +1487,8 @@ app.get("/api/export-records", (req, res) => {
 app.post("/api/record", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
   const { AdSoyad } = req.body;
 
@@ -1423,8 +1530,8 @@ const generateCustomID = () => {
 app.post("/api/addpro", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip;
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   const {
@@ -1546,8 +1653,8 @@ app.post("/api/addpro", (req, res) => {
 app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 
   const { fishNo } = req.params;
@@ -1580,19 +1687,19 @@ app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
 app.get("/", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/");
   }
 });
 
 app.get("*", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201") {
-    return res.redirect("http://192.168.0.201/*");
+  if (clientIP !== "http://192.168.0.201:1342") {
+    return res.redirect("http://192.168.0.201:1342/*");
   }
 });
 
-server.listen(PORT, "192.168.0.201", () => {
-  console.log(`http://192.168.0.201:${PORT}`);
+server.listen(PORT, "192.168.0.140", () => {
+  console.log(`http://192.168.0.140:${PORT}`);
 });
