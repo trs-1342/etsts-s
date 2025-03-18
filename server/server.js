@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
@@ -9,21 +10,25 @@ const app = express();
 const PORT = 2431;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const { spawn, exec } = require("child_process");
+const { exec } = require("child_process");
 const path = require("path");
 const bodyParser = require("body-parser");
 const PDFDocument = require("pdfkit");
-const { getPrinters } = require("pdf-to-printer");
 const printerForPdf = require("pdf-to-printer");
 const util = require("util");
-const moment = require("moment");
 const os = require("os");
-const printer = require("printer");
-// !
+const QRCode = require("qrcode");
 const fs = require("fs");
-const router = express.Router();
-const clients = new Set();
-const https = require("https");
+
+// !
+// const { getPrinters } = require("pdf-to-printer");
+// const printer = require("node-printer");
+// const moment = require("moment");
+// const router = express.Router();
+// const clients = new Set();
+// const https = require("https");
+
+const DB_TABLE_NAME = process.env.DB_TABLE_NAME;
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -62,7 +67,7 @@ app.use(
 
 app.use(
   cors({
-    origin: ["http://192.168.0.201:1342", "http://192.168.0.201:2431"],
+    origin: ["http://192.168.0.201:80", "http://192.168.0.201:80"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -70,7 +75,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://192.168.0.201:1342"); // İstemci adresi
+  res.header("Access-Control-Allow-Origin", "http://192.168.0.201:80"); // İstemci adresi
   res.header("Access-Control-Allow-Credentials", "true"); // Kimlik bilgilerini kabul et
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // İzin verilen HTTP yöntemleri
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // İzin verilen başlıklar
@@ -171,8 +176,8 @@ wss.on("connection", (ws, req) => {
 function authMiddleware(req, res, next) {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
 
   if (!req.session || !req.session.user) {
@@ -189,17 +194,15 @@ function authMiddleware(req, res, next) {
 }
 
 const formatDateForMySQL = (isoDate) => {
-  if (!isoDate) return null; // Boş veya undefined değerler null döner
+  if (!isoDate) return null;
 
   const date = new Date(isoDate);
 
-  // Geçerli tarih olup olmadığını kontrol et
   if (isNaN(date.getTime())) {
     // console.warn(`Geçersiz tarih değeri: ${isoDate}`);
     return null;
   }
 
-  // YYYY-MM-DD HH:MM:SS formatına çevir
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -210,284 +213,385 @@ const formatDateForMySQL = (isoDate) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-// app.post("/print", async (req, res) => {
-//   let { data, fishNo, AdSoyad } = req.body;
-
-//   if (!data || !fishNo || !AdSoyad) {
-//     return res.status(400).json({ error: "Yazdırılacak veri eksik." });
-//   }
-
-//   try {
-//     // 📌 **Türkçe karakterleri Base64'ten çözme**
-//     data = Buffer.from(data, "base64").toString("utf-8");
-
-//     // 📌 **Masaüstü yolunu dinamik olarak al**
-//     const desktopPath = path.join(os.homedir(), "Desktop", "enigma-pdfs");
-
-//     // Eğer klasör yoksa oluştur
-//     if (!fs.existsSync(desktopPath)) {
-//       fs.mkdirSync(desktopPath, { recursive: true });
-//     }
-
-//     // 📌 **Dosya İsmini Formatla**
-//     const formattedDate = moment().format("YYYY-MM-DD_HH-mm-ss");
-//     const sanitizedAdSoyad = AdSoyad.replace(/\s+/g, "_"); // Boşlukları _ ile değiştir
-//     const outputPath = path.join(
-//       desktopPath,
-//       `${fishNo}_${sanitizedAdSoyad}-${formattedDate}.pdf`
-//     );
-
-//     // 📌 **PDF Belgesi Oluştur**
-//     const doc = new PDFDocument({
-//       size: [80 * 2.83, 200 * 2.83], // 80mm x 200mm termal etiket boyutu
-//       margins: { top: 5, left: 5, right: 5, bottom: 5 },
-//     });
-
-//     const writeStream = fs.createWriteStream(outputPath);
-//     doc.pipe(writeStream);
-
-//     // 📌 **Arka Planı Siyah Yap**
-//     // doc.rect(0, 0, doc.page.width, doc.page.height).fill("#000000");
-
-//     // 📌 **Yazı Rengini Beyaz Yap**
-//     // doc.fillColor("#FFFFFF");
-
-//     // 📌 **Türkçe karakterleri destekleyen yazı tipi kullan**
-//     doc.font("fonts/DejaVuSans.ttf"); // Türkçe karakter destekleyen font (server'a ekle)
-
-//     // 📌 **PDF Başlığı**
-//     doc.fontSize(14).text("KAYIT FİŞİ", { align: "center" });
-//     doc.moveDown(0.5);
-//     doc.text("-".repeat(20), { align: "center" });
-//     doc.moveDown(0.5);
-
-//     // 📌 **Metni Türkçe karakterlerle PDF'e yazdır**
-//     const lines = data.split("\n");
-//     lines.forEach((line) => {
-//       doc.fontSize(10).text(line, { align: "left" });
-//       doc.moveDown(0.3);
-//     });
-
-//     doc.end();
-
-//     writeStream.on("finish", async () => {
-//       console.log(`✅ PDF başarıyla oluşturuldu: ${outputPath}`);
-
-//       try {
-//         await printer.print(outputPath, {
-//           // printer: "Argox CP-2140 PPLB",
-//           printer: "Xprinter XP-470B",
-//           options: ["-o media=Custom.80x200mm"], // 80mm x 200mm termal etiket boyutu
-//         });
-
-//         console.log("✅ Yazdırma tamamlandı.");
-//         res.json({ message: "Baskı başarılı.", pdfPath: outputPath });
-//       } catch (printErr) {
-//         console.error("❌ Yazdırma hatası:", printErr);
-//         res.status(500).json({ error: "Yazdırma başarısız." });
-//       }
-//     });
-
-//     writeStream.on("error", (pdfErr) => {
-//       console.error("❌ PDF oluşturma hatası:", pdfErr);
-//       res.status(500).json({ error: "PDF oluşturma başarısız." });
-//     });
-//   } catch (error) {
-//     console.error("❌ Base64 çözme hatası:", error);
-//     res.status(500).json({ error: "Veri çözümleme hatası." });
-//   }
-// });
-
-// function atob(str) {
-//   return Buffer.from(str, "base64").toString("binary");
-// }
-
 app.use(
   "/pdfs",
   express.static(path.join(os.homedir(), "Desktop", "enigma-pdfs"))
 );
 
-// app.post("/api/print", async (req, res) => {
-//   let { data, fishNo, AdSoyad } = req.body;
+app.post("/api-client/sorgula", (req, res) => {
+  const { adSoyad, fishNo } = req.body;
 
-//   if (!data || !fishNo || !AdSoyad) {
-//     return res.status(400).json({ error: "Yazdırılacak veri eksik." });
-//   }
-
-//   try {
-//     data = Buffer.from(data, "base64").toString("utf-8");
-
-//     const desktopPath = path.join(os.homedir(), "Desktop", "enigma-pdfs");
-
-//     if (!fs.existsSync(desktopPath)) {
-//       fs.mkdirSync(desktopPath, { recursive: true });
-//     }
-
-//     const formattedDate = moment().format("YYYY-MM-DD_HH-mm-ss");
-//     const sanitizedAdSoyad = AdSoyad.replace(/\s+/g, "_");
-//     const outputPath = path.join(
-//       desktopPath,
-//       `${fishNo}_${sanitizedAdSoyad}-${formattedDate}.pdf`
-//     );
-
-//     const doc = new PDFDocument({
-//       size: [80 * 2.83, 200 * 2.83],
-//       margins: { top: 5, left: 5, right: 5, bottom: 5 },
-//     });
-
-//     const writeStream = fs.createWriteStream(outputPath);
-//     doc.pipe(writeStream);
-
-//     doc.font("fonts/DejaVuSans.ttf");
-//     doc.fontSize(14).text("KAYIT FİŞİ", { align: "center" });
-//     doc.moveDown(0.5);
-//     doc.text("-".repeat(20), { align: "center" });
-//     doc.moveDown(0.5);
-
-//     const lines = data.split("\n");
-//     lines.forEach((line) => {
-//       doc.fontSize(10).text(line, { align: "left" });
-//       doc.moveDown(0.3);
-//     });
-
-//     doc.end();
-
-//     writeStream.on("finish", () => {
-//       console.log(`✅ PDF başarıyla oluşturuldu: ${outputPath}`);
-
-//       const printerName = "Canon_MF620C_Series"; // printer
-
-//       exec(`lp -d ${printerName} "${outputPath}"`, (error, stdout, stderr) => {
-//         if (error) {
-//           console.error("❌ Yazdırma hatası:", error);
-//           return res.status(500).json({ error: "Yazdırma başarısız." });
-//         }
-//         console.log("✅ Yazdırma tamamlandı:", stdout);
-//         res.json({ message: "Baskı başarılı.", pdfPath: outputPath });
-//       });
-//     });
-
-//     writeStream.on("error", (pdfErr) => {
-//       console.error("❌ PDF oluşturma hatası:", pdfErr);
-//       res.status(500).json({ error: "PDF oluşturma başarısız." });
-//     });
-//   } catch (error) {
-//     console.error("❌ Base64 çözme hatası:", error);
-//     res.status(500).json({ error: "Veri çözümleme hatası." });
-//   }
-// });
-
-// app.get("/api/printers", (req, res) => {
-//   exec("lpstat -p", (error, stdout, stderr) => {
-//     if (error) {
-//       console.error("❌ lpstat -p çalıştırılamadı:", error);
-//       return res.status(500).json({ error: "lpstat -p çalıştırılamadı." });
-//     }
-//     if (stderr) {
-//       console.error("⚠️ CUPS çıktısı hata içeriyor:", stderr);
-//       return res.status(500).json({ error: "CUPS hatası: " + stderr });
-//     }
-//     if (!stdout || stdout.trim() === "") {
-//       console.error("❌ Yazıcı listesi boş geldi.");
-//       return res.status(500).json({ error: "Yazıcı bulunamadı." });
-//     }
-
-//     try {
-//       const printers = stdout
-//         .split("\n")
-//         .filter((line) => line.includes("printer"))
-//         .map((line) => line.split(" ")[1]);
-
-//       if (printers.length === 0) {
-//         console.error("❌ Hiç yazıcı bulunamadı.");
-//         return res.status(500).json({ error: "Hiç yazıcı bulunamadı." });
-//       }
-
-//       console.log("✅ Bulunan yazıcılar:", printers);
-//       res.json({ printers });
-//     } catch (parseError) {
-//       console.error("❌ Yazıcı listesi ayrıştırılırken hata:", parseError);
-//       res.status(500).json({ error: "Yazıcı listesi ayrıştırma hatası." });
-//     }
-//   });
-// });
-
-// 1) Yazıcıları listeler (İşletim sistemine göre)
-app.get("/api/printers", (req, res) => {
-  try {
-    const allPrinters = printer.getPrinters(); // bir dizi obje döndürür
-    const printerNames = allPrinters.map((p) => p.name); // sadece adları çek
-    res.json({ printers: printerNames });
-  } catch (error) {
-    console.error("Yazıcıları alırken hata oluştu:", error);
-    return res.status(500).json({ error: "Yazıcılar alınamadı." });
+  if (!adSoyad || !fishNo) {
+    return res.status(400).json({ error: "Ad Soyad ve Fish No gerekli!" });
   }
+
+  if (!DB_TABLE_NAME) {
+    console.error("Veritabanı tablo adı tanımlı değil!");
+    return res
+      .status(500)
+      .json({ error: "Server hatası! Lütfen yöneticinize bildirin." });
+  }
+
+  // ✅ SQL Injection'dan korunmak için `db.format()` kullan
+  const query = db.format(`SELECT * FROM ?? WHERE AdSoyad = ? AND fishNo = ?`, [
+    DB_TABLE_NAME,
+    adSoyad,
+    fishNo,
+  ]);
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("MySQL Hatası:", err);
+      return res.status(500).json({ error: "Veritabanı hatası!" });
+    }
+
+    if (results.length > 0) {
+      res.json({ success: true, record: results[0] });
+    } else {
+      res.status(404).json({ success: false, error: "Kayıt bulunamadı!" });
+    }
+  });
 });
 
-// 2) Tek endpoint ile hem PDF oluşturup hem de seçili yazıcıdan basacak
-//    (Bu endpoint'e POST ile data, fishNo, printerName gönderilmesi gerekir)
-app.post("/api/print-and-pdf", (req, res) => {
+app.post("/api-client/sorgula-qr", (req, res) => {
+  const { fishNo } = req.body;
+
+  if (!fishNo) {
+    return res.status(400).json({ error: "Fish No gerekli!" });
+  }
+
+  if (!DB_TABLE_NAME) {
+    console.error("❌ Veritabanı tablo adı `.env` içinde tanımlı değil!");
+    return res
+      .status(500)
+      .json({ error: "Server hatası! Lütfen yöneticinize bildirin." });
+  }
+
+  // ✅ SQL Injection'dan korunmak için `db.format()` kullan
+  const query = db.format(`SELECT * FROM ?? WHERE fishNo = ?`, [
+    DB_TABLE_NAME,
+    fishNo,
+  ]);
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("❌ MySQL Hatası:", err);
+      return res.status(500).json({ error: "Veritabanı hatası!" });
+    }
+
+    if (results.length > 0) {
+      res.json({ success: true, record: results[0] });
+    } else {
+      res.status(404).json({ success: false, error: "Kayıt bulunamadı!" });
+    }
+  });
+});
+
+app.get("/api-client/qr-sorgula", (req, res) => {
+  const fishNo = req.query.fishNo;
+
+  if (!fishNo) {
+    return res.redirect(`http://${process.env.API_HOST}:80/`); // ❌ Eğer fishNo yoksa anasayfaya yönlendir
+  }
+
+  if (!DB_TABLE_NAME) {
+    console.error("❌ Veritabanı tablo adı `.env` içinde tanımlı değil!");
+    return res.redirect(`http://${process.env.API_HOST}:80/`);
+  }
+
+  // ✅ SQL Injection'dan korunmak için `db.format()` kullan
+  const query = db.format(`SELECT * FROM ?? WHERE fishNo = ?`, [
+    DB_TABLE_NAME,
+    fishNo,
+  ]);
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("❌ MySQL Hatası:", err);
+      return res.redirect(`http://${process.env.API_HOST}:80/`);
+    }
+
+    if (results.length > 0) {
+      const userRecord = JSON.stringify(results[0]);
+
+      // ✅ Kullanıcı bulunduysa, bilgileri URL parametresi olarak ekleyerek yönlendir
+      res.redirect(
+        `http://${process.env.API_HOST}:80/client?record=${encodeURIComponent(
+          userRecord
+        )}`
+      );
+    } else {
+      res.redirect(`http://${process.env.API_HOST}:80/`); // ❌ Kullanıcı yoksa anasayfaya yönlendir
+    }
+  });
+});
+
+app.get("/api/printers", (req, res) => {
+  let command;
+
+  if (process.platform === "win32") {
+    // 🔥 Windows'ta ağ ve USB yazıcıları almak için iki komut kullanıyoruz
+    command =
+      'powershell -command "Get-Printer | Select-Object Name, PortName" || "wmic printer get Name,PortName"';
+  } else if (process.platform === "linux") {
+    command = "lpstat -v"; // Linux için bağlı yazıcıları listeler
+  } else if (process.platform === "darwin") {
+    command = "lpstat -v"; // macOS için
+  } else {
+    return res.status(500).json({ error: "Desteklenmeyen işletim sistemi" });
+  }
+
+  exec(command, (error, stdout) => {
+    if (error) {
+      console.error("Yazıcıları listelerken hata oluştu:", error);
+      return res.status(500).json({ error: "Yazıcılar listelenemedi." });
+    }
+
+    const printers = stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.trim());
+
+    let detectedPrinters = [];
+
+    if (process.platform === "win32") {
+      // Windows çıktısını işleyerek ağ veya USB olduğunu belirle
+      detectedPrinters = printers.map((line) => {
+        const parts = line.split(/\s{2,}/);
+        const printerName = parts[0] || "";
+        const portName = parts[1] || "";
+
+        // 🔥 USB, COM, LPT, WSD veya TCP/IP bağlantılarını ayır
+        let type = "Bilinmeyen Bağlantı";
+        if (portName.startsWith("USB") || portName.includes("DOT4")) {
+          type = "Kablolu (USB)";
+        } else if (portName.startsWith("LPT")) {
+          type = "Kablolu (LPT Paralel Port)";
+        } else if (portName.startsWith("COM")) {
+          type = "Kablolu (Seri Port - COM)";
+        } else if (portName.startsWith("WSD") || portName.startsWith("TCP")) {
+          type = "Ağ (Network)";
+        }
+
+        return { name: printerName, type };
+      });
+    } else if (process.platform === "linux" || process.platform === "darwin") {
+      // Linux ve macOS çıktısını işle
+      detectedPrinters = printers.map((line) => {
+        const printerName = line
+          .split(":")[0]
+          .replace("device for ", "")
+          .trim();
+        let type = "Bilinmeyen Bağlantı";
+
+        if (line.includes("usb")) {
+          type = "Kablolu (USB)";
+        } else if (line.includes("network") || line.includes("ipp")) {
+          type = "Ağ (Network)";
+        }
+
+        return { name: printerName, type };
+      });
+    }
+
+    // console.log("Bağlı Yazıcılar:", detectedPrinters);
+    res.json({ printers: detectedPrinters });
+  });
+});
+
+// const fontPath = path.join(__dirname, "fonts", "DejaVuSans.ttf");
+// const logoPath = path.join(__dirname, "../client/public/logo.png"); // Logonu buraya eklemelisin
+
+app.post("/print", async (req, res) => {
   try {
-    const { data, fishNo, printerName } = req.body;
+    const {
+      printerName: unPrinterName,
+      fishNo,
+      AdSoyad,
+      date,
+      TelNo,
+      Urun,
+      Marka,
+      Model,
+      SeriNo,
+      GarantiDurumu,
+      BirlikteAlinanlar,
+      Aciklama,
+      sorunlar,
+      yapilanlar,
+      ucret,
+      altMetin,
+    } = req.body;
 
-    if (!data || !fishNo || !printerName) {
-      return res.status(400).json({ error: "Gerekli veri eksik." });
+    if (!unPrinterName) {
+      return res.status(400).json({ error: "Eksik parametre" });
     }
 
-    // 2a) base64'ü çöz
-    const buffer = Buffer.from(data, "base64");
-    const decodedText = buffer.toString("utf-8");
+    let printerName = unPrinterName.replace(/ WSD-.+$/, "").trim();
+    printerName = printerName.replace(/^"(.*)"$/, "$1");
+    // console.log(`📨 Temizlenmiş Yazıcı Adı: "${printerName}"`);
 
-    // 2b) PDF oluştur
-    if (!fs.existsSync("./pdfs")) {
-      fs.mkdirSync("./pdfs");
-    }
-    const pdfPath = path.join(__dirname, "pdfs", `${fishNo}.pdf`);
+    const pdfFilePath = path.join(
+      os.homedir(),
+      "Desktop/enigma-records",
+      `${AdSoyad}-${fishNo}_${date}.pdf`
+    );
 
-    const doc = new PDFDocument();
-    const writeStream = fs.createWriteStream(pdfPath);
+    const doc = new PDFDocument({
+      size: "A4",
+      margins: { top: 10, left: 10, right: 10, bottom: 10 },
+    });
+    const writeStream = fs.createWriteStream(pdfFilePath);
     doc.pipe(writeStream);
-    doc.text(decodedText);
+
+    const fontPath = path.join(__dirname, "./fonts/DejaVuSans.ttf");
+    if (fs.existsSync(fontPath)) {
+      doc.font(fontPath);
+    } else {
+      console.warn(`⚠️ Font dosyası bulunamadı: ${fontPath}`);
+    }
+
+    function drawTicket(xOffset) {
+      const qrCodePath = path.join(os.tmpdir(), `qr_${fishNo}.png`);
+      QRCode.toFile(
+        qrCodePath,
+        `http://192.168.0.201:80/api-client/qr-sorgula?fishNo=${fishNo}`,
+        { width: 20 }
+      );
+
+      doc.image("../client/public/logo.png", xOffset + 10, 0, { width: 90 });
+      doc.image(qrCodePath, xOffset + 200, 0, { width: 90 });
+
+      // doc.rect(xOffset + 10, 70, 200, 150).stroke();
+
+      let yPos = 75;
+      const leftColumn = [
+        `Tarih: ${date}`,
+        `Ad Soyad: ${AdSoyad}`,
+        `Tel No: ${TelNo}`,
+        `Ürün: ${Urun}`,
+        `Marka: ${Marka}`,
+        `Model: ${Model}`,
+        `Seri No: ${SeriNo}`,
+        `Garanti: ${GarantiDurumu}`,
+        `Birlikte A.: ${BirlikteAlinanlar}`,
+        `Açıklama: ${Aciklama}`,
+        `Yapılanlar: ${yapilanlar}`,
+      ];
+      leftColumn.forEach((text) => {
+        doc.fontSize(8).text(text, xOffset + 15, yPos);
+        yPos += 10;
+      });
+
+      doc.fontSize(10).text(`Fiş No: ${fishNo}`, xOffset + 140, 85);
+      doc
+        .moveTo(xOffset + 140, 95)
+        .lineTo(xOffset + 200, 95)
+        .strokeColor("red")
+        .stroke();
+
+      doc.fontSize(8).text("Sorunlar:", xOffset + 140, 95);
+      doc.text(sorunlar.substring(0, 50), xOffset + 80, 105, {
+        width: 100,
+        height: 20,
+      });
+
+      // doc.fontSize(8).text("Yapılanlar:", xOffset + 120, 125);
+      // doc.text(yapilanlar.substring(0, 50), xOffset + 180, 125, {
+      //   width: 100,
+      //   height: 20,
+      // });
+
+      doc.fontSize(10).text("Ücret:", xOffset + 140, 155);
+      doc.text(`${ucret} TL`, xOffset + 180, 155);
+      doc
+        .moveTo(xOffset + 140, 165)
+        .lineTo(xOffset + 200, 165)
+        .strokeColor("red")
+        .stroke();
+
+      doc.fontSize(8).text(altMetin, xOffset + 10, 190, { width: 280 });
+    }
+
+    drawTicket(0);
+    drawTicket(300);
+
     doc.end();
 
-    // 2c) PDF oluşturma bittiğinde yazıcıya gönder
-    writeStream.on("finish", () => {
-      printerForPdf.printFile({
-        filename: pdfPath,
-        printer: printerName,
-        success: function (jobID) {
-          console.log("PDF Baskısı gönderildi! JobID:", jobID);
-          return res.json({
-            message: "PDF oluşturuldu ve baskı gönderildi.",
-            pdfPath,
-          });
-        },
-        error: function (err) {
-          console.error("Baskı hatası:", err);
-          return res
-            .status(500)
-            .json({ error: "PDF yazıcıya gönderilirken bir hata oluştu." });
-        },
-      });
+    writeStream.on("finish", async () => {
+      try {
+        console.log(`📨 Yazdırılıyor: ${printerName}, Dosya: ${pdfFilePath}`);
+        await printerForPdf.print(pdfFilePath, { printer: printerName });
+        res.json({ success: true, message: "Baskı başarılı" });
+      } catch (err) {
+        console.error("Baskı hatası:", err);
+        res
+          .status(500)
+          .json({ error: "Baskı sırasında hata oluştu.", details: err });
+      }
     });
 
     writeStream.on("error", (err) => {
-      console.error("PDF kaydedilirken hata:", err);
-      return res
-        .status(500)
-        .json({ error: "PDF oluşturulurken bir hata oluştu." });
+      console.error("PDF oluşturma hatası:", err);
+      res.status(500).json({ error: "PDF oluşturulamadı.", details: err });
     });
   } catch (error) {
-    console.error("Sunucu tarafında hata oluştu:", error);
-    return res.status(500).json({ error: "Bilinmeyen bir hata oluştu." });
+    console.error("İşlem sırasında hata oluştu:", error);
+    res.status(500).json({ error: "Sunucu hatası", details: error.message });
   }
+});
+
+app.post("/api/xprint", (req, res) => {
+  const { printerName, printData } = req.body;
+
+  if (!printerName) {
+    return res.status(400).json({ error: "Yazıcı adı belirtilmedi." });
+  }
+
+  // Xprinter var mı kontrol et
+  exec("wmic printer get Name", (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Yazıcıları alırken hata: ${error.message}`);
+      return res.status(500).json({ error: "Yazıcıları alırken hata oluştu." });
+    }
+
+    const printerList = stdout
+      .split("\n")
+      .slice(1)
+      .map((name) => name.trim())
+      .filter((name) => name);
+    const xprinterExists = printerList.some((name) =>
+      name.toLowerCase().includes("xprinter")
+    );
+
+    if (!xprinterExists) {
+      return res
+        .status(404)
+        .json({ error: "Xprinter bulunamadı. Lütfen yazıcıyı kontrol edin." });
+    }
+
+    // Yazdırma işlemini başlat
+    exec(
+      `echo ${printData} > print_job.txt & print /D:\\${printerName} print_job.txt`,
+      (printError, printStdout, printStderr) => {
+        if (printError) {
+          console.error(`Yazdırma hatası: ${printError.message}`);
+          return res
+            .status(500)
+            .json({ error: "Yazdırma sırasında hata oluştu." });
+        }
+
+        res.json({ success: true, message: "Yazdırma başarılı." });
+      }
+    );
+  });
 });
 
 app.get("/api/checkAdmin", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const username = req.session?.user?.username;
 
@@ -524,8 +628,8 @@ app.get("/api/checkAdmin", (req, res) => {
 app.post("/api/logout", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   req.session.destroy((err) => {
     if (err) {
@@ -540,8 +644,8 @@ app.post("/api/logout", (req, res) => {
 app.post("/api/login", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { username, password } = req.body;
 
@@ -602,8 +706,8 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/check-product-access/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { fishNo } = req.params;
   const username = req.session.user?.username;
@@ -634,8 +738,8 @@ app.get("/api/check-product-access/:fishNo", (req, res) => {
 app.post("/api/check-page-access", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { username, page } = req.body;
 
@@ -686,8 +790,8 @@ app.post("/api/check-page-access", (req, res) => {
 app.get("/api/get-user-pages/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { username } = req.params;
 
@@ -740,8 +844,8 @@ app.get("/api/get-user-pages/:username", (req, res) => {
 app.get("/api/get-user-permissions/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { username } = req.params;
 
@@ -767,8 +871,8 @@ app.get("/api/get-user-permissions/:username", (req, res) => {
 app.get("/api/get-session-user", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   if (req.session.user) {
     res.json({ username: req.session.user.username });
@@ -780,8 +884,8 @@ app.get("/api/get-session-user", (req, res) => {
 app.get("/api/get-user-records/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { username } = req.params;
 
@@ -850,8 +954,8 @@ app.get("/api/get-user-records/:username", (req, res) => {
 app.post("/api/add-user", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { username, password, email, role } = req.body;
 
@@ -905,8 +1009,8 @@ app.post("/api/add-user", async (req, res) => {
 app.put("/api/update-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const userId = req.params.id;
   const { username, email, role, password } = req.body;
@@ -973,8 +1077,8 @@ app.put("/api/update-user/:id", async (req, res) => {
 app.delete("/api/delete-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { id } = req.params;
 
@@ -1010,8 +1114,8 @@ app.delete("/api/delete-user/:id", async (req, res) => {
 app.get("/api/get-users-data", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const query = "SELECT id, username, email, role, created_at FROM users";
 
@@ -1028,8 +1132,8 @@ app.get("/api/get-users-data", (req, res) => {
 app.get("/api/get-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const userId = req.params.id;
   const query =
@@ -1052,8 +1156,8 @@ app.get("/api/get-user/:id", (req, res) => {
 app.post("/api/update-settings-for-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const userId = req.params.id;
   const { allowedColumns } = req.body;
@@ -1083,8 +1187,8 @@ app.post("/api/update-settings-for-user/:id", (req, res) => {
 app.get("/api/get-user-settings/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const username = req.params.username; // URL'den gelen kullanıcı adı
   console.log(username);
@@ -1130,8 +1234,8 @@ app.get("/api/get-user-settings/:username", (req, res) => {
 app.post("/api/change-user-settings", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { username, permissions } = req.body;
 
@@ -1203,8 +1307,8 @@ app.post("/api/change-user-settings", (req, res) => {
 app.get("/api/delivered-products", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const query = "SELECT * FROM records WHERE Durum = 'Teslim Edildi'";
   db.query(query, (err, results) => {
@@ -1225,8 +1329,8 @@ app.get("/api/delivered-products", (req, res) => {
 app.get("/api/getInfoProd/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const fishNo = req.params.fishNo;
 
@@ -1248,8 +1352,8 @@ app.get("/api/getInfoProd/:fishNo", (req, res) => {
 app.get("/api/protected", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
 
   const username = req.session.user?.username;
@@ -1296,8 +1400,8 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 app.get("/api/records", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { username, role } = req.user; // authMiddleware'den gelen kullanıcı bilgileri
 
@@ -1348,7 +1452,7 @@ app.get("/api/record/:fishNo", (req, res) => {
     }
 
     // ** eğer istek yetkili istemciden gelmiyorsa mesaj döndür **
-    if (clientIP !== "http://192.168.0.201:1342") {
+    if (clientIP !== "http://192.168.0.201:80") {
       return res
         .status(403)
         .json({ message: "Bu verilere erişim izniniz yok." });
@@ -1362,7 +1466,7 @@ app.get("/api/record/:fishNo", (req, res) => {
 app.get("/api/get-all-fishNos", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
+  if (clientIP !== "http://192.168.0.201:80") {
     return res.status(403).json({ message: "Bu verilere erişim izniniz yok." });
   }
 
@@ -1382,7 +1486,7 @@ app.get("/api/get-all-fishNos", (req, res) => {
 app.put("/api/record/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // İstemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
+  if (clientIP !== "http://192.168.0.201:80") {
     return res.status(403).json({ message: "Bu verilere erişim izniniz yok." });
   }
   const { fishNo } = req.params;
@@ -1461,8 +1565,8 @@ app.put("/api/record/:fishNo", (req, res) => {
 app.get("/api/export-records", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const query = `
     SELECT fishNo, AdSoyad, DATE_FORMAT(TeslimAlmaTarihi, '%Y-%m-%d %H:%i:%s') AS TeslimAlmaTarihi, 
@@ -1487,8 +1591,8 @@ app.get("/api/export-records", (req, res) => {
 app.post("/api/record", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
   const { AdSoyad } = req.body;
 
@@ -1510,18 +1614,6 @@ app.post("/api/record", (req, res) => {
   });
 });
 
-// const generateFishNoID = () => {
-//   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-//   return (
-//     "FSH-" +
-//     chars[Math.floor(Math.random() * chars.length)] +
-//     chars[Math.floor(Math.random() * chars.length)] +
-//     chars[Math.floor(Math.random() * chars.length)] +
-//     "-" +
-//     Math.floor(1000 + Math.random() * 9000)
-//   );
-// };
-
 const generateCustomID = () => {
   const randomDigits = () => Math.floor(100 + Math.random() * 900); // 100-999 arasında rastgele sayı üret
   return `${randomDigits()}-${randomDigits()}-${randomDigits()}`;
@@ -1530,8 +1622,8 @@ const generateCustomID = () => {
 app.post("/api/addpro", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip;
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
 
   const {
@@ -1570,7 +1662,7 @@ app.post("/api/addpro", (req, res) => {
   const insertRecordQuery = `
     INSERT INTO ETSTSR.records 
     (AdSoyad, TeslimAlmaTarihi, TelNo, TeslimAlan, Teknisyen, SeriNo, Urun, Marka, Model, GarantiDurumu, BirlikteAlinanlar, Sorunlar, Aciklama, Ucret, HazirlamaTarihi, TeslimEtmeTarihi, Durum)
-    VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, 'Bekliyor');
+    VALUES (?, NOW(), ?, ?, 'Ibrahim Bey', ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, 'Bekliyor');
   `;
 
   db.query(
@@ -1653,8 +1745,8 @@ app.post("/api/addpro", (req, res) => {
 app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
 
   const { fishNo } = req.params;
@@ -1687,19 +1779,19 @@ app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
 app.get("/", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/");
   }
 });
 
 app.get("*", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
-  if (clientIP !== "http://192.168.0.201:1342") {
-    return res.redirect("http://192.168.0.201:1342/*");
+  if (clientIP !== "http://192.168.0.201:80") {
+    return res.redirect("http://192.168.0.201:80/*");
   }
 });
 
-server.listen(PORT, "192.168.0.140", () => {
-  console.log(`http://192.168.0.140:${PORT}`);
+server.listen(PORT, "192.168.0.201", () => {
+  console.log(`http://192.168.0.201:${PORT}`);
 });

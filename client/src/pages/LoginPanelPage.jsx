@@ -30,7 +30,7 @@ export default function LoginPanelPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://192.168.0.201:2431/api/login/", {
+      const response = await fetch("http://192.168.0.201:80/api/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -96,7 +96,7 @@ export default function LoginPanelPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <div className="form-check mb-4">
+            <div className="form-check mb-4 text-start">
               <input
                 type="checkbox"
                 className="form-check-input"
@@ -108,6 +108,15 @@ export default function LoginPanelPage() {
                 Beni Hatırla
               </label>
             </div>
+
+            {/* Müşteri yazısını sola hizaladık */}
+            <p className="text-start">
+              Müşteri misiniz?{" "}
+              <a href="/login-client" type="submit" className="a link fw-medium">
+                Müşteri Girişi paneli
+              </a>
+            </p>
+
             <button type="submit" className="btn btn-success fw-medium w-100">
               Login
             </button>

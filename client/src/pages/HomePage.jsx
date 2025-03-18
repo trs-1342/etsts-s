@@ -41,11 +41,18 @@ export default function HomePage() {
   const [userId, setUserId] = useState(null); // Initialize userId state
   const [userData, setUserData] = useState(null);
 
+  // TODO: Bu kısmı düzenle
+  // if (!isAuthorized || !userData) {
+  //   console.log(userData, userId, userRole, role);
+
+  //   return <div>Loading...{userData}</div>;
+  // }
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/checkAdmin",
+          "http://192.168.0.201:80/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -70,7 +77,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        const response = await fetch("http://192.168.0.201:2431/api/records", {
+        const response = await fetch("http://192.168.0.201:80/api/records", {
           credentials: "include",
         });
         if (!response.ok) throw new Error("Yetkisiz erişim!");
@@ -477,7 +484,7 @@ export default function HomePage() {
   const handleLogout = async () => {
     try {
       // Backend'e çıkış işlemi için istek gönder
-      const response = await fetch("http://192.168.0.201:2431/api/logout", {
+      const response = await fetch("http://192.168.0.201:80/api/logout", {
         method: "POST",
         credentials: "include", // Çerezleri gönder
       });
@@ -910,7 +917,7 @@ export default function HomePage() {
                   ))
               ) : (
                 <tr className="bg-danger text-danger">
-                  <td colSpan="16">Filtreye uygun kayıt bulunamadı.</td>
+                  <td colSpan="19">Filtreye uygun kayıt bulunamadı.</td>
                 </tr>
               )}
             </tbody>

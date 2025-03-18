@@ -28,6 +28,8 @@ import UnauthorizedPage from "./pages/UnauthorizedPage.jsx";
 import ShowUserStatusPage from "./pages/ShowUserStatusPage";
 import YouCantSee from "./pages/YouCantSee.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
+import ClientPage from "./pages/ClientPage.jsx";
+import LoginClientPage from "./pages/LoginClientPage.jsx";
 
 function AppContent() {
   const { user } = useUser();
@@ -56,6 +58,8 @@ function AppContent() {
       "/you-cant-see": "Erişim Engellendi",
       "/show-user-status": "Kullanıcı Durumu",
       "/crecord": "Kontrollü Kayıtlar",
+      "/client": "Müşteri",
+      "/login-client": "Müşteri Giriş",
       // "*": "Sayfa Bulunamadı",
     };
 
@@ -86,7 +90,7 @@ function AppContent() {
     const fetchPermissions = async () => {
       try {
         const response = await fetch(
-          `http://192.168.0.201:2431/api/get-user-pages/${user.username}`
+          `http://192.168.0.201:80/api/get-user-pages/${user.username}`
         );
         const data = await response.json();
 
@@ -113,9 +117,14 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPanelPage />} />
-      {/* <Route path="/" element={<Navigate to={<HomePage />} />} /> */}
+      <Route path="/login-client" element={<LoginClientPage />} />
       {!user ? (
-        <Route path="*" element={<Navigate to="/login" />} />
+        <>
+          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/login-client" element={<LoginClientPage />} />
+          <Route path="/client" element={<ClientPage />} />
+        </>
       ) : permissions === "admin" ? (
         <>
           <Route path="/" element={<HomePage />} />
@@ -138,6 +147,8 @@ function AppContent() {
             path="/delivered-products"
             element={<DeliveredProductsPage />}
           />
+          <Route path="/client" element={<ClientPage />} />
+          {/* <Route path="/login-client" element={<LoginClientPage />} /> */}
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/you-cant-see" element={<YouCantSee />} />
           <Route path="/show-user-status" element={<ShowUserStatusPage />} />
@@ -146,11 +157,11 @@ function AppContent() {
       ) : (
         <>
           <Route path="*" element={<Navigate to="/" />} />
-          {permissions?.HomePage ? (
+          {/* {permissions?.HomePage ? (
             <Route path="/" element={<HomePage />} />
           ) : (
             <Route path="/" element={<ShowUserStatusPage />} />
-          )}
+          )} */}
           {permissions?.AddCustomerPage ? (
             <Route path="/add-customer-page" element={<AddCustomerPage />} />
           ) : (

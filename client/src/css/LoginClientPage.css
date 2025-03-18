@@ -1,0 +1,22 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.container-fluid {
+  min-height: 100vh;
+}
+
+.shadow {
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-control {
+  border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  .w-25 {
+    width: 100% !important;
+    text-align: left !important;
+  }
+}

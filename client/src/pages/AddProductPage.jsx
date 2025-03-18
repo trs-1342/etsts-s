@@ -12,7 +12,7 @@ export default function AddProductPage() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/checkAdmin",
+          "http://192.168.0.201:80/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -36,7 +36,7 @@ export default function AddProductPage() {
     AdSoyad: "",
     TelNo: "",
     TeslimAlan: "",
-    Teknisyen: "",
+    Teknisyen: "Ibrahim Bey",
     SeriNo: "",
     Urun: "",
     Marka: "",
@@ -70,7 +70,7 @@ export default function AddProductPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://192.168.0.201:2431/api/addpro", {
+      const response = await fetch("http://192.168.0.201:80/api/addpro", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,7 +87,7 @@ export default function AddProductPage() {
       }
 
       alert("Kayıt başarıyla eklendi.");
-      window.location.href = "http://192.168.0.201:1342/";
+      window.location.href = "http://192.168.0.201:80/";
       const data = JSON.parse(text);
       console.log("Ürün eklendi:", data);
     } catch (error) {
@@ -160,7 +160,7 @@ export default function AddProductPage() {
               Teknisyen
             </label>
             <select
-              disabled="true"
+              disabled={true}
               className="form-select"
               id="Teknisyen"
               name="Teknisyen"

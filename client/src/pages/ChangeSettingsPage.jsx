@@ -53,7 +53,7 @@ export default function ChangeSettingsPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://192.168.0.201:2431/api/get-users-data");
+        const response = await axios.get("http://192.168.0.201:80/api/get-users-data");
         setUsers(response.data);
       } catch (error) {
         console.error("Hata:", error);
@@ -74,7 +74,7 @@ export default function ChangeSettingsPage() {
 
     const fetchUserPermissions = async () => {
       try {
-        const response = await axios.get(`http://192.168.0.201:2431/api/get-user-permissions/${selectedUser}`);
+        const response = await axios.get(`http://192.168.0.201:80/api/get-user-permissions/${selectedUser}`);
         const userPermissions = response.data;
         let updatedColumns = {};
         [...columns.group1, ...columns.group2].forEach((col) => {
@@ -119,7 +119,7 @@ export default function ChangeSettingsPage() {
     try {
       console.log("Gönderilen Veri:", { username: selectedUser, permissions: selectedColumns });
 
-      const response = await axios.post("http://192.168.0.201:2431/api/change-user-settings", {
+      const response = await axios.post("http://192.168.0.201:80/api/change-user-settings", {
         username: selectedUser,
         permissions: selectedColumns,
       });
