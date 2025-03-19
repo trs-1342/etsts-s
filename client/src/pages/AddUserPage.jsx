@@ -15,7 +15,7 @@ export default function AddUserPage() {
 
     try {
       const response = await axios.post(
-        "http://192.168.0.201:80/api/add-user",
+        "http://192.168.0.201:2431/api/add-user",
         {
           username,
           password,

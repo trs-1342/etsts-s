@@ -402,7 +402,7 @@ app.get("/api/printers", (req, res) => {
 // const fontPath = path.join(__dirname, "fonts", "DejaVuSans.ttf");
 // const logoPath = path.join(__dirname, "../client/public/logo.png"); // Logonu buraya eklemelisin
 
-app.post("/print", async (req, res) => {
+app.post("/api/print", async (req, res) => {
   try {
     const {
       printerName: unPrinterName,
