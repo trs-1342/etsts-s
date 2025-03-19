@@ -12,7 +12,7 @@ export default function AddProductPage() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/checkAdmin",
+          "http://1342/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -70,7 +70,7 @@ export default function AddProductPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://192.168.0.201:2431/api/addpro", {
+      const response = await fetch("http://1342/api/addpro", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

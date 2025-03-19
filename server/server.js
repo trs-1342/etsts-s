@@ -7,7 +7,7 @@ const WebSocket = require("ws");
 const http = require("http");
 const bcrypt = require("bcrypt");
 const app = express();
-const PORT = 2431;
+const PORT = 1342;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const { exec } = require("child_process");
@@ -53,33 +53,34 @@ db.connect((err) => {
 
 app.use(
   session({
-    secret: "superSecureRandomSecretKey123!",
+    secret: "enigma-ibocanger2431)*_*(",
     resave: false,
     saveUninitialized: true,
-    rolling: false,
+    rolling: true,
     cookie: {
       maxAge: 43200000,
-      sameSite: "lax",
-      secure: false,
+      sameSite: "Lax", // Eğer HTTPS kullanıyorsan "None" yapmalısın
+      secure: false, // HTTPS varsa true yap
+      httpOnly: false,
     },
   })
 );
 
 app.use(
   cors({
-    origin: ["http://192.168.0.201:80", "http://192.168.0.201:80"],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "http://192.168.0.201", // "*" yerine istemcinin adresini kullan
+    credentials: true, // Kimlik bilgilerini destekle
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://192.168.0.201:80"); // İstemci adresi
-  res.header("Access-Control-Allow-Credentials", "true"); // Kimlik bilgilerini kabul et
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // İzin verilen HTTP yöntemleri
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // İzin verilen başlıklar
-  next();
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "http://192.168.0.201");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.sendStatus(204);
 });
 
 wss.on("connection", (ws, req) => {
@@ -177,7 +178,7 @@ function authMiddleware(req, res, next) {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
 
   if (!req.session || !req.session.user) {
@@ -291,12 +292,12 @@ app.get("/api-client/qr-sorgula", (req, res) => {
   const fishNo = req.query.fishNo;
 
   if (!fishNo) {
-    return res.redirect(`http://${process.env.API_HOST}:80/`); // ❌ Eğer fishNo yoksa anasayfaya yönlendir
+    return res.redirect(`http://192.168.0.201/`); // ❌ Eğer fishNo yoksa anasayfaya yönlendir
   }
 
   if (!DB_TABLE_NAME) {
     console.error("❌ Veritabanı tablo adı `.env` içinde tanımlı değil!");
-    return res.redirect(`http://${process.env.API_HOST}:80/`);
+    return res.redirect(`http://192.168.0.201/`);
   }
 
   // ✅ SQL Injection'dan korunmak için `db.format()` kullan
@@ -308,7 +309,7 @@ app.get("/api-client/qr-sorgula", (req, res) => {
   db.query(query, (err, results) => {
     if (err) {
       console.error("❌ MySQL Hatası:", err);
-      return res.redirect(`http://${process.env.API_HOST}:80/`);
+      return res.redirect(`http://192.168.0.201/`);
     }
 
     if (results.length > 0) {
@@ -316,12 +317,10 @@ app.get("/api-client/qr-sorgula", (req, res) => {
 
       // ✅ Kullanıcı bulunduysa, bilgileri URL parametresi olarak ekleyerek yönlendir
       res.redirect(
-        `http://${process.env.API_HOST}:80/client?record=${encodeURIComponent(
-          userRecord
-        )}`
+        `http://192.168.0.201/client?record=${encodeURIComponent(userRecord)}`
       );
     } else {
-      res.redirect(`http://${process.env.API_HOST}:80/`); // ❌ Kullanıcı yoksa anasayfaya yönlendir
+      res.redirect(`http://192.168.0.201/`); // ❌ Kullanıcı yoksa anasayfaya yönlendir
     }
   });
 });
@@ -591,7 +590,7 @@ app.get("/api/checkAdmin", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const username = req.session?.user?.username;
 
@@ -629,7 +628,7 @@ app.post("/api/logout", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   req.session.destroy((err) => {
     if (err) {
@@ -641,11 +640,73 @@ app.post("/api/logout", (req, res) => {
   });
 });
 
+// app.post("/api/login", async (req, res) => {
+//   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
+
+//   if (clientIP !== "http://192.168.0.201:80") {
+//     return res.redirect("http://192.168.0.201/");
+//   }
+//   const { username, password } = req.body;
+
+//   if (!username || !password) {
+//     return res
+//       .status(400)
+//       .json({ message: "Kullanıcı adı ve şifre gereklidir." });
+//   }
+
+//   try {
+//     const userQuery = "SELECT * FROM users WHERE username = ?";
+//     const userResults = await dbQuery(userQuery, [username]);
+
+//     if (!userResults || userResults.length === 0) {
+//       return res.status(401).json({ message: "Geçersiz kullanıcı adı." });
+//     }
+
+//     const user = userResults[0];
+//     const hashedPassword = user.password;
+
+//     if (!hashedPassword) {
+//       console.error("Kullanıcının hashlenmiş şifresi bulunamadı.");
+//       return res.status(500).json({ message: "Kullanıcı şifresi eksik." });
+//     }
+
+//     const isPasswordValid = await bcrypt.compare(password, hashedPassword);
+//     if (!isPasswordValid) {
+//       return res.status(401).json({ message: "Geçersiz şifre." });
+//     }
+
+//     req.session.user = { username: user.username, role: user.role };
+
+//     if (user.role === "admin") {
+//       return res.status(200).json({
+//         message: "Başarıyla giriş yapıldı!",
+//         user: { username: user.username, role: user.role },
+//         redirectTo: "/",
+//         permissions: "admin",
+//       });
+//     }
+
+//     const tableStatusQuery =
+//       "SELECT * FROM ETSTSR.tablestatus WHERE username = ?";
+//     const tableStatusResults = await dbQuery(tableStatusQuery, [username]);
+
+//     return res.status(200).json({
+//       message: "Başarıyla giriş yapıldı!",
+//       user: { username: user.username, role: user.role },
+//       redirectTo: "/show-user-status",
+//       permissions: tableStatusResults[0] || {},
+//     });
+//   } catch (error) {
+//     console.error("Giriş işlemi sırasında hata:", error);
+//     return res.status(500).json({ message: "Sunucu hatası." });
+//   }
+// });
+
 app.post("/api/login", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { username, password } = req.body;
 
@@ -707,7 +768,7 @@ app.get("/api/check-product-access/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { fishNo } = req.params;
   const username = req.session.user?.username;
@@ -739,7 +800,7 @@ app.post("/api/check-page-access", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { username, page } = req.body;
 
@@ -791,7 +852,7 @@ app.get("/api/get-user-pages/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { username } = req.params;
 
@@ -845,7 +906,7 @@ app.get("/api/get-user-permissions/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { username } = req.params;
 
@@ -872,7 +933,7 @@ app.get("/api/get-session-user", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   if (req.session.user) {
     res.json({ username: req.session.user.username });
@@ -885,7 +946,7 @@ app.get("/api/get-user-records/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { username } = req.params;
 
@@ -955,7 +1016,7 @@ app.post("/api/add-user", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { username, password, email, role } = req.body;
 
@@ -1010,7 +1071,7 @@ app.put("/api/update-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const userId = req.params.id;
   const { username, email, role, password } = req.body;
@@ -1078,7 +1139,7 @@ app.delete("/api/delete-user/:id", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { id } = req.params;
 
@@ -1115,7 +1176,7 @@ app.get("/api/get-users-data", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const query = "SELECT id, username, email, role, created_at FROM users";
 
@@ -1133,7 +1194,7 @@ app.get("/api/get-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const userId = req.params.id;
   const query =
@@ -1157,7 +1218,7 @@ app.post("/api/update-settings-for-user/:id", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const userId = req.params.id;
   const { allowedColumns } = req.body;
@@ -1188,7 +1249,7 @@ app.get("/api/get-user-settings/:username", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const username = req.params.username; // URL'den gelen kullanıcı adı
   console.log(username);
@@ -1235,7 +1296,7 @@ app.post("/api/change-user-settings", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { username, permissions } = req.body;
 
@@ -1308,7 +1369,7 @@ app.get("/api/delivered-products", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const query = "SELECT * FROM records WHERE Durum = 'Teslim Edildi'";
   db.query(query, (err, results) => {
@@ -1330,7 +1391,7 @@ app.get("/api/getInfoProd/:fishNo", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const fishNo = req.params.fishNo;
 
@@ -1353,7 +1414,7 @@ app.get("/api/protected", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
 
   const username = req.session.user?.username;
@@ -1401,7 +1462,7 @@ app.get("/api/records", authMiddleware, (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { username, role } = req.user; // authMiddleware'den gelen kullanıcı bilgileri
 
@@ -1566,7 +1627,7 @@ app.get("/api/export-records", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const query = `
     SELECT fishNo, AdSoyad, DATE_FORMAT(TeslimAlmaTarihi, '%Y-%m-%d %H:%i:%s') AS TeslimAlmaTarihi, 
@@ -1592,7 +1653,7 @@ app.post("/api/record", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
   const { AdSoyad } = req.body;
 
@@ -1623,7 +1684,7 @@ app.post("/api/addpro", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip;
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
 
   const {
@@ -1746,7 +1807,7 @@ app.delete("/api/deleteProduct/:fishNo", async (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
 
   const { fishNo } = req.params;
@@ -1788,10 +1849,10 @@ app.get("*", (req, res) => {
   const clientIP = req.headers.origin || req.headers.referer || req.ip; // istemci IP'sini al
 
   if (clientIP !== "http://192.168.0.201:80") {
-    return res.redirect("http://192.168.0.201:80/*");
+    return res.redirect("http://192.168.0.201/");
   }
 });
 
-server.listen(PORT, "192.168.0.201", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`http://192.168.0.201:${PORT}`);
 });

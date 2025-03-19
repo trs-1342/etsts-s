@@ -8,7 +8,7 @@ export default function ShowUserInfoPage() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://192.168.0.201:2431/api/logout", {
+      const response = await fetch("http://1342/api/logout", {
         method: "POST",
         credentials: "include", // Çerezleri gönder
       });
@@ -29,7 +29,7 @@ export default function ShowUserInfoPage() {
 
   // Kullanıcı bilgilerini çek
   useEffect(() => {
-    fetch(`http://192.168.0.201:2431/api/get-user/${id}`)
+    fetch(`http://1342/api/get-user/${id}`)
       .then((response) => response.json())
       .then((data) => setUser(data))
       .catch((error) => console.error("Kullanıcı bilgisi alınamadı:", error));
@@ -38,7 +38,7 @@ export default function ShowUserInfoPage() {
   // Kullanıcıyı sil
   const handleDelete = () => {
     if (window.confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
-      fetch(`http://192.168.0.201:2431/api/delete-user/${id}`, {
+      fetch(`http://1342/api/delete-user/${id}`, {
         method: "DELETE",
       })
         .then((response) => {

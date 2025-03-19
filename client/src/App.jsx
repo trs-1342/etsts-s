@@ -90,7 +90,7 @@ function AppContent() {
     const fetchPermissions = async () => {
       try {
         const response = await fetch(
-          `http://192.168.0.201:2431/api/get-user-pages/${user.username}`
+          `http://1342/api/get-user-pages/${user.username}`
         );
         const data = await response.json();
 

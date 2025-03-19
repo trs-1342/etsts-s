@@ -45,7 +45,7 @@ export default function DeliveredProductsPage() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/checkAdmin",
+          "http://1342/api/checkAdmin",
           {
             credentials: "include",
           }
@@ -70,7 +70,7 @@ export default function DeliveredProductsPage() {
     const fetchTeslimEdilenler = async () => {
       try {
         const response = await fetch(
-          "http://192.168.0.201:2431/api/delivered-products"
+          "http://1342/api/delivered-products"
         );
 
         if (!response.ok) {
@@ -302,7 +302,7 @@ export default function DeliveredProductsPage() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://192.168.0.201:2431/api/logout", {
+      const response = await fetch("http://1342/api/logout", {
         method: "POST",
         credentials: "include", // Çerezleri gönder
       });

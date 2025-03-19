@@ -26,20 +26,62 @@ export default function LoginPanelPage() {
     }
   }, [navigate]);
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   try {
+  //     const response = await fetch("http://1342/api/login", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       credentials: "include",
+  //       body: JSON.stringify({ username, password }),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       setUser({ username, role: data.user.role });
+
+  //       if (rememberMe) {
+  //         localStorage.setItem(
+  //           "user",
+  //           JSON.stringify({ username, role: data.user.role })
+  //         );
+  //       } else {
+  //         localStorage.removeItem("user");
+  //       }
+
+  //       navigate(data.redirectTo);
+  //     } else {
+  //       setMessage(data.message || "Bilinmeyen bir hata oluştu.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Hata:", error);
+  //     setMessage("Sunucuya bağlanırken bir hata oluştu.");
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://192.168.0.201:2431/api/login/", {
+      const response = await fetch("http://1342/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ username, password }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json(); // Hata mesajını JSON olarak al
+        throw new Error(
+          errorData.message || `HTTP Error! Status: ${response.status}`
+        );
+      }
+
       const data = await response.json();
 
-      if (response.ok) {
+      if (data && data.user) {
         setUser({ username, role: data.user.role });
 
         if (rememberMe) {
@@ -53,11 +95,11 @@ export default function LoginPanelPage() {
 
         navigate(data.redirectTo);
       } else {
-        setMessage(data.message || "Bilinmeyen bir hata oluştu.");
+        setMessage("Sunucudan beklenen yanıt alınamadı.");
       }
     } catch (error) {
       console.error("Hata:", error);
-      setMessage("Sunucuya bağlanırken bir hata oluştu.");
+      setMessage(error.message || "Sunucuya bağlanırken bir hata oluştu.");
     }
   };
 
@@ -112,7 +154,11 @@ export default function LoginPanelPage() {
             {/* Müşteri yazısını sola hizaladık */}
             <p className="text-start">
               Müşteri misiniz?{" "}
-              <a href="/login-client" type="submit" className="a link fw-medium">
+              <a
+                href="/login-client"
+                type="submit"
+                className="a link fw-medium"
+              >
                 Müşteri Girişi paneli
               </a>
             </p>
